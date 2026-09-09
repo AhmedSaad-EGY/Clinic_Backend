@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="Electron" modified="2026-09-04T21:57:15Z" agent="Codex final reviewed logical ERD" version="24.7.17" type="device" compressed="false">
+  <diagram id="overview" name="01 - Domain Overview">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2100" pageHeight="1250" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="ov-title" value="&lt;b&gt;Clinic Management System — Final ERD&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;Approved logical data model • SQL Server / ASP.NET Core&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontColor=#1f2937;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="1450" height="62"/>
+        </mxCell>
+        <mxCell id="identity" value="&lt;b&gt;Identity &amp; Access&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Admin, secretaries, roles, sessions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="150" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="catalog" value="&lt;b&gt;Clinic Catalog&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Departments, rooms, services, doctors, devices&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="470" y="150" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="scheduling" value="&lt;b&gt;Scheduling&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Availability, closures and resource conflicts&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="870" y="150" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="patient" value="&lt;b&gt;Patient Records&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Permanent file, area, notes and history&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="430" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="appointment" value="&lt;b&gt;Appointments&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Multi-service visit with price snapshots&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="570" y="430" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="finance" value="&lt;b&gt;Collections &amp; Refunds&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Shift-bound collection and immutable reversals&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1070" y="430" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="clinical" value="&lt;b&gt;Prescriptions&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Versioned prescriptions and follow-up dates&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="720" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="packages" value="&lt;b&gt;Packages &amp; Discounts&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Purchased composition and session ledger&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="570" y="720" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="shifts" value="&lt;b&gt;Cash Drawers &amp; Shifts&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Opening balance, reconciliation and variance&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1070" y="720" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="audit" value="&lt;b&gt;Approvals &amp; Audit&lt;/b&gt;&lt;br/&gt;&lt;font color='#4b5563'&gt;Typed approvals and immutable audit events&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=15;fontColor=#1f2937;spacing=10;fillColor=#e6e6e6;strokeColor=#666666;strokeWidth=2;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1570" y="720" width="330" height="115"/>
+        </mxCell>
+        <mxCell id="ov-legend" value="&lt;b&gt;Scope and modeling rules&lt;/b&gt;&lt;hr/&gt;• One clinic branch; exactly one current room per department.&lt;br/&gt;• A visit may contain several services from the same department.&lt;br/&gt;• Doctor, room and required-device availability is checked atomically.&lt;br/&gt;• Booking/package prices and discounts are stored as historical snapshots.&lt;br/&gt;• Payments, refunds, shift movements and audit events are append-only.&lt;br/&gt;• Offline mode is read-only; it never creates a synchronization queue.&lt;br/&gt;• Every *ByUserId / *UserId field references ApplicationUser unless a composite FK is shown.&lt;br/&gt;• AK = alternate unique key, CK = check constraint, ? = nullable." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=12;fontColor=#1f2937;dashed=1;fillColor=#fffdf2;strokeColor=#d6b656;strokeWidth=1.3;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1530" y="120" width="500" height="440"/>
+        </mxCell>
+        <mxCell id="ov-e01" value="domain | creates / updates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="identity" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e02" value="domain | configures" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="catalog" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e03" value="domain | provides availability" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="scheduling" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e04" value="domain | owns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="patient" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e05" value="domain | produces" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="appointment" target="clinical">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e06" value="domain | is paid by" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="appointment" target="finance">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e07" value="domain | reserves session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="packages" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e08" value="domain | is paid by" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="packages" target="finance">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e09" value="domain | records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="shifts" target="finance">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e10" value="domain | operates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="identity" target="shifts">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e11" value="domain | requires approval / audits" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="finance" target="audit">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e12" value="domain | audits" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="clinical" target="audit">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ov-e13" value="domain | audits" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;dashed=1;" edge="1" parent="1" source="appointment" target="audit">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="catalog-scheduling" name="02 - Catalog &amp; Scheduling">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3000" pageHeight="1850" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="cs-title" value="&lt;b&gt;Catalog, Scheduling &amp; Appointments&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;Composite keys shown below eliminate cross-department and resource-assignment mismatches&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontColor=#1f2937;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="2400" height="62"/>
+        </mxCell>
+        <mxCell id="department" value="&lt;b&gt;Department&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;AK Name&lt;br/&gt;Description?&lt;br/&gt;EffectiveStatus [derived from active closure]&lt;br/&gt;IsArchived&lt;br/&gt;CreatedAt / UpdatedAt&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="120" width="310" height="220"/>
+        </mxCell>
+        <mxCell id="room" value="&lt;b&gt;Room&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DepartmentId&lt;br/&gt;AK DepartmentId (one room)&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;Name&lt;br/&gt;IsActive / IsArchived&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="410" y="120" width="310" height="220"/>
+        </mxCell>
+        <mxCell id="specialization" value="&lt;b&gt;Specialization&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DepartmentId&lt;br/&gt;AK (DepartmentId, Name)&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;Name&lt;br/&gt;IsActive / IsArchived&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="780" y="120" width="310" height="220"/>
+        </mxCell>
+        <mxCell id="service" value="&lt;b&gt;Service&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (SpecializationId, DepartmentId)&lt;br/&gt;DepartmentId [enforcement key]&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;AK (SpecializationId, Name)&lt;br/&gt;Name / ServiceType&lt;br/&gt;DurationMinutes&lt;br/&gt;PricingMode (Fixed / PerUnit)&lt;br/&gt;CurrentUnitPrice&lt;br/&gt;IsActive / IsArchived&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1150" y="120" width="330" height="310"/>
+        </mxCell>
+        <mxCell id="service-price" value="&lt;b&gt;ServicePriceHistory&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK ServiceId&lt;br/&gt;UnitPrice&lt;br/&gt;EffectiveFrom&lt;br/&gt;EffectiveTo?&lt;br/&gt;ChangedByUserId&lt;br/&gt;ChangedAt&lt;br/&gt;CK no overlapping periods" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1540" y="120" width="310" height="245"/>
+        </mxCell>
+        <mxCell id="device" value="&lt;b&gt;Device&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DepartmentId&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;AK Identifier?&lt;br/&gt;Name&lt;br/&gt;IsActive / IsArchived&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1910" y="120" width="310" height="220"/>
+        </mxCell>
+        <mxCell id="service-device" value="&lt;b&gt;ServiceDevice&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (ServiceId, DepartmentId)&lt;br/&gt;FK (DeviceId, DepartmentId)&lt;br/&gt;DepartmentId [enforcement key]&lt;br/&gt;AK (ServiceId, DeviceId)&lt;br/&gt;AK (Id, ServiceId, DepartmentId)&lt;br/&gt;AK (Id, ServiceId, DepartmentId, DeviceId)&lt;br/&gt;IsRequired / IsActive" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2280" y="120" width="330" height="265"/>
+        </mxCell>
+        <mxCell id="doctor" value="&lt;b&gt;Doctor&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DepartmentId&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;Name&lt;br/&gt;Phone?&lt;br/&gt;IsActive / IsArchived&lt;br/&gt;CreatedAt / UpdatedAt&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="520" width="310" height="190"/>
+        </mxCell>
+        <mxCell id="doctor-service" value="&lt;b&gt;DoctorService&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (DoctorId, DepartmentId)&lt;br/&gt;FK (ServiceId, DepartmentId)&lt;br/&gt;ServiceId / DepartmentId&lt;br/&gt;AK (DoctorId, ServiceId)&lt;br/&gt;AK (Id, ServiceId, DepartmentId)&lt;br/&gt;IsActive&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="410" y="520" width="330" height="250"/>
+        </mxCell>
+        <mxCell id="doctor-schedule" value="&lt;b&gt;DoctorSchedule&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DoctorId&lt;br/&gt;DayOfWeek&lt;br/&gt;StartTime / EndTime&lt;br/&gt;EffectiveFrom&lt;br/&gt;EffectiveTo?&lt;br/&gt;IsActive&lt;br/&gt;RowVersion&lt;br/&gt;CK valid time/date range" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800" y="520" width="310" height="245"/>
+        </mxCell>
+        <mxCell id="doctor-exception" value="&lt;b&gt;DoctorException&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DoctorId&lt;br/&gt;ExceptionDate&lt;br/&gt;StartTime? / EndTime?&lt;br/&gt;Type (Available / Unavailable)&lt;br/&gt;Reason?&lt;br/&gt;CreatedAt / CreatedByUserId&lt;br/&gt;CancelledAt? / CancelledByUserId?&lt;br/&gt;RowVersion&lt;br/&gt;CK valid time range" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1170" y="520" width="320" height="245"/>
+        </mxCell>
+        <mxCell id="department-closure" value="&lt;b&gt;DepartmentClosure&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DepartmentId&lt;br/&gt;StartAt / EndAt&lt;br/&gt;Reason&lt;br/&gt;CreatedAt / CreatedByUserId&lt;br/&gt;CancelledAt? / CancelledByUserId?&lt;br/&gt;RowVersion&lt;br/&gt;CK StartAt &amp;lt; EndAt" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1550" y="520" width="320" height="245"/>
+        </mxCell>
+        <mxCell id="patient-ref" value="&lt;b&gt;Patient&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;See page 03" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1930" y="520" width="290" height="105"/>
+        </mxCell>
+        <mxCell id="user-ref" value="&lt;b&gt;ApplicationUser&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;Admin / Secretary&lt;br/&gt;See page 06" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2280" y="520" width="290" height="120"/>
+        </mxCell>
+        <mxCell id="discount-ref" value="&lt;b&gt;Discount&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;Eligibility + validity&lt;br/&gt;See page 05" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2630" y="520" width="290" height="120"/>
+        </mxCell>
+        <mxCell id="appointment" value="&lt;b&gt;Appointment&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientId&lt;br/&gt;FK (RoomId, DepartmentId)&lt;br/&gt;DepartmentId [enforcement key]&lt;br/&gt;AK (Id, PatientId)&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;StartAt / EndAt&lt;br/&gt;Status (Booked/Suspended/Confirmed/Completed/Cancelled/NoShow)&lt;br/&gt;StatusBeforeSuspension? (Booked/Confirmed)&lt;br/&gt;PaymentStatus (Unpaid/Paid/PartiallyRefunded/Refunded)&lt;br/&gt;Subtotal / Discount / Net snapshots&lt;br/&gt;CreatedBy / UpdatedBy UserId&lt;br/&gt;CancelledAt? / CancelledBy?&lt;br/&gt;CancellationReason?&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="900" width="360" height="390"/>
+        </mxCell>
+        <mxCell id="appointment-service" value="&lt;b&gt;AppointmentService&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (AppointmentId, DepartmentId)&lt;br/&gt;FK (DoctorServiceId, ServiceId, DepartmentId)&lt;br/&gt;ServiceId / DepartmentId [enforcement keys]&lt;br/&gt;FK DiscountId?&lt;br/&gt;AK (Id, ServiceId, DepartmentId)&lt;br/&gt;AK (Id, ServiceId)&lt;br/&gt;AK (AppointmentId, SequenceNo)&lt;br/&gt;SequenceNo&lt;br/&gt;SegmentStartAt / SegmentEndAt&lt;br/&gt;Quantity&lt;br/&gt;UnitPrice / Gross snapshots&lt;br/&gt;Discount / Net snapshots&lt;br/&gt;DiscountOverrideMode? / Reason?&lt;br/&gt;DiscountOverrideByAdminUserId?&lt;br/&gt;Status (Scheduled/Completed/Cancelled/Superseded)&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="500" y="900" width="430" height="445"/>
+        </mxCell>
+        <mxCell id="appointment-device" value="&lt;b&gt;AppointmentDevice&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (AppointmentServiceId, ServiceId, DepartmentId)&lt;br/&gt;FK (ServiceDeviceId, ServiceId, DepartmentId, DeviceId)&lt;br/&gt;FK (DeviceId, DepartmentId)&lt;br/&gt;ServiceId / DepartmentId / DeviceId [enforcement keys]&lt;br/&gt;ReservedFrom / ReservedTo&lt;br/&gt;AK (AppointmentServiceId, ServiceDeviceId)&lt;br/&gt;CK ReservedFrom &amp;lt; ReservedTo" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1030" y="900" width="410" height="265"/>
+        </mxCell>
+        <mxCell id="cs-rules" value="&lt;b&gt;Scheduling invariants (must be transactional)&lt;/b&gt;&lt;hr/&gt;• Every AppointmentService belongs to the same department as the appointment room; composite FKs enforce this.&lt;br/&gt;• DoctorService proves that the selected doctor is eligible for that exact service.&lt;br/&gt;• AppointmentDevice proves that the device is configured for that exact service and department.&lt;br/&gt;• Prevent overlapping active intervals for the room, doctor, and each required device using a SERIALIZABLE transaction or application lock.&lt;br/&gt;• All segments must fall inside Appointment.StartAt–EndAt; appointment totals equal the sum of service snapshots.&lt;br/&gt;• A stopped department may create a Suspended booking with a warning; activation releases it only after conflict revalidation and restores Booked/Confirmed.&lt;br/&gt;• Superseded service lines preserve edit history but never reserve resources or affect current filters.&lt;br/&gt;• Confirmed/paid booking cancellation requires an approved request; ordinary unpaid bookings may be cancelled by a secretary.&lt;br/&gt;• Posting the payment and confirming a fully paid booking occurs in one database transaction.&lt;br/&gt;• CurrentPrice is admin-managed; historical bookings never recalculate after catalog or discount changes." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=12;fontColor=#1f2937;dashed=1;fillColor=#fffdf2;strokeColor=#d6b656;strokeWidth=1.3;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1540" y="870" width="1380" height="440"/>
+        </mxCell>
+        <mxCell id="cs-e01" value="1 — N | contains" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="department" target="room">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e02" value="1 — N | contains" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="department" target="specialization">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e03" value="1 — N | defines" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="specialization" target="service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e04" value="1 — N | has price history" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="service" target="service-price">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e05" value="1 — N | owns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="department" target="device">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e06" value="1 — N | allows / requires" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="service" target="service-device">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e07" value="1 — N | is mapped by" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="device" target="service-device">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e08" value="1 — N | is eligible through" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="doctor" target="doctor-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e09" value="1 — N | is delivered through" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="service" target="doctor-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e10" value="1 — N | has recurring hours" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="doctor" target="doctor-schedule">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e11" value="1 — N | has date override" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="doctor" target="doctor-exception">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e12" value="1 — N | has closure" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="department" target="department-closure">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e12a" value="1 — N | has doctors" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="department" target="doctor">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e13" value="1 — N | owns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient-ref" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e14" value="1 — N | hosts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="room" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e15" value="1 — N | contains" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment" target="appointment-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e16" value="1 — N | assigns eligible doctor/service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="doctor-service" target="appointment-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e17" value="0..1 — N | snapshotted from" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="discount-ref" target="appointment-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e18" value="1 — N | reserves" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment-service" target="appointment-device">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e19" value="1 — N | selects configured device" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="service-device" target="appointment-device">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="cs-e20" value="1 — N | creates / updates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="user-ref" target="appointment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="patients-clinical" name="03 - Patients &amp; Clinical Records">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="1550" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="pc-title" value="&lt;b&gt;Patients, Prescriptions &amp; Follow-ups&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;Permanent patient file and immutable prescription revision history&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontColor=#1f2937;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="2100" height="62"/>
+        </mxCell>
+        <mxCell id="patient" value="&lt;b&gt;Patient&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;AK FileNumber (never reused)&lt;br/&gt;AK PrimaryPhoneNumber&lt;br/&gt;SecondaryPhoneNumber? [contact only]&lt;br/&gt;FullName&lt;br/&gt;BirthDate?&lt;br/&gt;AgeAtRegistration?&lt;br/&gt;AgeRecordedAt?&lt;br/&gt;Gender (Male / Female)&lt;br/&gt;Area? / Address? / Email?&lt;br/&gt;GuardianName? / GuardianPhoneNumber?&lt;br/&gt;IsArchived&lt;br/&gt;CreatedBy / CreatedAt&lt;br/&gt;UpdatedBy? / UpdatedAt?&lt;br/&gt;RowVersion&lt;br/&gt;CK DOB or age+recorded date&lt;br/&gt;CK secondary differs from primary" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="120" width="380" height="430"/>
+        </mxCell>
+        <mxCell id="patient-note" value="&lt;b&gt;PatientNote&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientId&lt;br/&gt;NoteText&lt;br/&gt;Visibility (Staff / AdminOnly)&lt;br/&gt;CreatedByUserId&lt;br/&gt;CreatedAt&lt;br/&gt;IsArchived&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="120" width="320" height="245"/>
+        </mxCell>
+        <mxCell id="treatment-history" value="&lt;b&gt;TreatmentHistory&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientId&lt;br/&gt;EventDate&lt;br/&gt;Description&lt;br/&gt;CreatedByUserId&lt;br/&gt;CreatedAt&lt;br/&gt;IsArchived&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="860" y="120" width="320" height="245"/>
+        </mxCell>
+        <mxCell id="appointment-service-ref" value="&lt;b&gt;AppointmentService&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK AppointmentId&lt;br/&gt;Doctor + service assignment&lt;br/&gt;See page 02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1580" y="120" width="320" height="145"/>
+        </mxCell>
+        <mxCell id="appointment-ref" value="&lt;b&gt;Appointment&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientId&lt;br/&gt;See page 02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1960" y="120" width="280" height="115"/>
+        </mxCell>
+        <mxCell id="user-ref" value="&lt;b&gt;ApplicationUser&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;Admin / Secretary&lt;br/&gt;See page 06" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2300" y="120" width="260" height="115"/>
+        </mxCell>
+        <mxCell id="prescription" value="&lt;b&gt;Prescription&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK AppointmentServiceId&lt;br/&gt;AK AppointmentServiceId&lt;br/&gt;FK (CurrentRevisionId, Id)?&lt;br/&gt;Status (Draft / Finalized / Voided)&lt;br/&gt;CreatedByUserId&lt;br/&gt;CreatedAt&lt;br/&gt;FinalizedByUserId? / FinalizedAt?&lt;br/&gt;VoidedByAdminUserId? / VoidedAt?&lt;br/&gt;VoidReason?&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="610" width="360" height="320"/>
+        </mxCell>
+        <mxCell id="prescription-revision" value="&lt;b&gt;PrescriptionRevision&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PrescriptionId&lt;br/&gt;AK (Id, PrescriptionId)&lt;br/&gt;AK (PrescriptionId, RevisionNumber)&lt;br/&gt;RevisionNumber&lt;br/&gt;CreatedByUserId&lt;br/&gt;CreatedAt&lt;br/&gt;ChangeReason?&lt;br/&gt;ReturnDate?&lt;br/&gt;CK RevisionNumber &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="470" y="610" width="360" height="280"/>
+        </mxCell>
+        <mxCell id="prescription-item" value="&lt;b&gt;PrescriptionItem&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PrescriptionRevisionId&lt;br/&gt;AK (PrescriptionRevisionId, SortOrder)&lt;br/&gt;SortOrder&lt;br/&gt;MedicineName&lt;br/&gt;DoseAmount? / DoseUnit?&lt;br/&gt;TimesPerDay?&lt;br/&gt;FrequencyText?&lt;br/&gt;DurationText?&lt;br/&gt;FoodTiming? (Before / After meal)&lt;br/&gt;Instructions?" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="900" y="610" width="370" height="305"/>
+        </mxCell>
+        <mxCell id="follow-up" value="&lt;b&gt;FollowUp&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PrescriptionId / AK PrescriptionId&lt;br/&gt;FK PatientId / DepartmentId&lt;br/&gt;ReturnDate&lt;br/&gt;Status (Due / Completed / Cancelled)&lt;br/&gt;FK (ResultAppointmentId, PatientId)?&lt;br/&gt;AK ResultAppointmentId? (filtered)&lt;br/&gt;CreatedByUserId / CreatedAt&lt;br/&gt;ClosedByUserId? / ClosedAt?&lt;br/&gt;ClosureReason?&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1340" y="610" width="350" height="320"/>
+        </mxCell>
+        <mxCell id="pc-rules" value="&lt;b&gt;Clinical record rules&lt;/b&gt;&lt;hr/&gt;• The secretary transcribes the doctor's written prescription after the appointment service is completed; doctors and patients have no system login.&lt;br/&gt;• Prescription.CurrentRevisionId is a real FK to a revision of the same prescription; it is assigned after the first revision is inserted.&lt;br/&gt;• Every save creates a new immutable revision. Existing revisions and medicine lines are never overwritten or deleted.&lt;br/&gt;• The secretary finalizes a draft after explicit doctor-prescription matching; only the admin may correct or void a finalized prescription, with a mandatory reason.&lt;br/&gt;• ReturnDate automatically creates one Due FollowUp, not an appointment. The secretary explicitly chooses an eligible time and doctor.&lt;br/&gt;• Converting a FollowUp atomically creates a non-suspended appointment for the same patient and department, then marks it Completed.&lt;br/&gt;• Voiding a prescription cancels a Due follow-up; completed/cancelled follow-ups and their appointments remain unchanged.&lt;br/&gt;• AdminOnly patient notes must never be returned by secretary-facing queries or offline snapshots." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=12;fontColor=#1f2937;dashed=1;fillColor=#fffdf2;strokeColor=#d6b656;strokeWidth=1.3;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1770" y="560" width="790" height="430"/>
+        </mxCell>
+        <mxCell id="pc-e02" value="1 — N | has" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient" target="patient-note">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e03" value="1 — N | has" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient" target="treatment-history">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e04" value="1 — 0..1 | produces" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment-service-ref" target="prescription">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e05" value="1 — N | has versions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="prescription" target="prescription-revision">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e05b" value="0..1 — 1 | selected as current" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="prescription-revision" target="prescription">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e06" value="1 — N | contains medicines" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="prescription-revision" target="prescription-item">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e07" value="1 — 0..1 | creates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="prescription" target="follow-up">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e08" value="1 — 0..1 | fulfills" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment-ref" target="follow-up">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pc-e09" value="1 — N | records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="user-ref" target="prescription-revision">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="finance" name="04 - Cashier, Payments &amp; Refunds">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3350" pageHeight="1950" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="fn-title" value="&lt;b&gt;Cashier, Payments, Reconciliation &amp; Refunds&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;Every financial event belongs to a shift and remains traceable to its original payment&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontColor=#1f2937;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="2700" height="62"/>
+        </mxCell>
+        <mxCell id="user-ref" value="&lt;b&gt;ApplicationUser&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;Admin / Secretary&lt;br/&gt;See page 06" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="120" width="290" height="115"/>
+        </mxCell>
+        <mxCell id="patient-ref" value="&lt;b&gt;Patient&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;See page 03" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="390" y="120" width="290" height="105"/>
+        </mxCell>
+        <mxCell id="appointment-ref" value="&lt;b&gt;Appointment&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientId&lt;br/&gt;AK (Id, PatientId)&lt;br/&gt;See page 02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="740" y="120" width="290" height="135"/>
+        </mxCell>
+        <mxCell id="patient-package-ref" value="&lt;b&gt;PatientPackage&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientId&lt;br/&gt;AK (Id, PatientId)&lt;br/&gt;See page 05" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1090" y="120" width="290" height="135"/>
+        </mxCell>
+        <mxCell id="approval-ref" value="&lt;b&gt;ApprovalRequest&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK OriginalPaymentId?&lt;br/&gt;Status = Approved&lt;br/&gt;See page 06" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1440" y="120" width="300" height="145"/>
+        </mxCell>
+        <mxCell id="payment-method" value="&lt;b&gt;PaymentMethod&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;AK Code&lt;br/&gt;DisplayName&lt;br/&gt;IsCash&lt;br/&gt;IsActive&lt;br/&gt;SortOrder" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1800" y="120" width="290" height="180"/>
+        </mxCell>
+        <mxCell id="shift-policy" value="&lt;b&gt;ShiftPolicy&lt;/b&gt;&lt;hr/&gt;PK Id (singleton, CK Id = 1)&lt;br/&gt;ClosingGraceMinutes (default 10, max 120)&lt;br/&gt;UpdatedByAdminUserId&lt;br/&gt;UpdatedAt&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2150" y="120" width="320" height="200"/>
+        </mxCell>
+        <mxCell id="package-session-ref" value="&lt;b&gt;PackageSession&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientPackageId&lt;br/&gt;AK (Id, PatientPackageId)&lt;br/&gt;See page 05" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2530" y="120" width="320" height="140"/>
+        </mxCell>
+        <mxCell id="cash-drawer" value="&lt;b&gt;CashDrawer&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK SecretaryUserId&lt;br/&gt;AK SecretaryUserId&lt;br/&gt;Name&lt;br/&gt;IsActive&lt;br/&gt;CreatedAt&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="430" width="310" height="220"/>
+        </mxCell>
+        <mxCell id="shift" value="&lt;b&gt;Shift&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK CashDrawerId&lt;br/&gt;ScheduledStart / ScheduledEnd&lt;br/&gt;ActualOpenedAt?&lt;br/&gt;GraceEndsAt&lt;br/&gt;ClosedAt?&lt;br/&gt;OpeningBalance?&lt;br/&gt;OpeningBalanceEnteredByUserId?&lt;br/&gt;OpeningBalanceEnteredAt?&lt;br/&gt;ExpectedCash?&lt;br/&gt;DeclaredCash?&lt;br/&gt;CashVariance?&lt;br/&gt;Status (Scheduled/Open/Grace/Closed/Cancelled)&lt;br/&gt;OpenedAutomatically&lt;br/&gt;ScheduledByAdminUserId&lt;br/&gt;ClosedByUserId?&lt;br/&gt;CloseNote?&lt;br/&gt;CancelledAt? / CancelledByAdminUserId?&lt;br/&gt;CancellationReason?&lt;br/&gt;RowVersion&lt;br/&gt;CK chronological timestamps and state fields" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="410" y="430" width="390" height="500"/>
+        </mxCell>
+        <mxCell id="shift-movement" value="&lt;b&gt;ShiftMovement&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK ShiftId&lt;br/&gt;FK PaymentMethodId?&lt;br/&gt;FK ApprovalRequestId?&lt;br/&gt;FK OriginalMovementId?&lt;br/&gt;Type (Expense / Withdrawal / Correction)&lt;br/&gt;Direction (In / Out)&lt;br/&gt;Amount&lt;br/&gt;Reason&lt;br/&gt;Status (Posted / Reversed)&lt;br/&gt;CreatedByUserId / CreatedAt&lt;br/&gt;CK Amount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="840" y="430" width="370" height="340"/>
+        </mxCell>
+        <mxCell id="payment" value="&lt;b&gt;Payment&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;AK TransactionNumber&lt;br/&gt;AK IdempotencyKey&lt;br/&gt;RequestFingerprint (char 64)&lt;br/&gt;FK ShiftId&lt;br/&gt;FK PatientId&lt;br/&gt;AK (Id, PatientId)&lt;br/&gt;TotalAmount&lt;br/&gt;CollectedByUserId&lt;br/&gt;CollectedAt&lt;br/&gt;Status (Posted/PartiallyRefunded/Refunded)&lt;br/&gt;Note?&lt;br/&gt;RowVersion&lt;br/&gt;CK TotalAmount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1270" y="430" width="360" height="320"/>
+        </mxCell>
+        <mxCell id="payment-method-allocation" value="&lt;b&gt;PaymentMethodAllocation&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PaymentId&lt;br/&gt;FK PaymentMethodId&lt;br/&gt;AK (Id, PaymentId)&lt;br/&gt;AK (PaymentId, PaymentMethodId)&lt;br/&gt;Amount&lt;br/&gt;ReferenceNumber?&lt;br/&gt;CK Amount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1690" y="430" width="380" height="265"/>
+        </mxCell>
+        <mxCell id="appointment-payment-allocation" value="&lt;b&gt;AppointmentPaymentAllocation&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (PaymentId, PatientId)&lt;br/&gt;FK (AppointmentId, PatientId)&lt;br/&gt;PatientId [enforcement key]&lt;br/&gt;AK (Id, PaymentId)&lt;br/&gt;AK AppointmentId [full payment only]&lt;br/&gt;AK (PaymentId, AppointmentId)&lt;br/&gt;Amount&lt;br/&gt;CK Amount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2130" y="430" width="390" height="280"/>
+        </mxCell>
+        <mxCell id="package-payment-allocation" value="&lt;b&gt;PackagePaymentAllocation&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (PaymentId, PatientId)&lt;br/&gt;FK (PatientPackageId, PatientId)&lt;br/&gt;PatientId [enforcement key]&lt;br/&gt;AK (Id, PaymentId)&lt;br/&gt;AK (PaymentId, PatientPackageId)&lt;br/&gt;Amount&lt;br/&gt;CK Amount &amp;gt; 0&lt;br/&gt;Full package payment only" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2580" y="430" width="410" height="315"/>
+        </mxCell>
+        <mxCell id="refund" value="&lt;b&gt;Refund&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;AK TransactionNumber&lt;br/&gt;AK IdempotencyKey&lt;br/&gt;RequestFingerprint (char 64)&lt;br/&gt;FK ApprovalRequestId&lt;br/&gt;FK OriginalPaymentId&lt;br/&gt;FK ExecutionShiftId&lt;br/&gt;AK ApprovalRequestId&lt;br/&gt;AK (Id, OriginalPaymentId)&lt;br/&gt;Amount&lt;br/&gt;ExecutedByUserId&lt;br/&gt;ExecutedAt&lt;br/&gt;Status (Posted / Reversed)&lt;br/&gt;Note?&lt;br/&gt;RowVersion&lt;br/&gt;CK Amount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1010" width="390" height="350"/>
+        </mxCell>
+        <mxCell id="refund-method-allocation" value="&lt;b&gt;RefundMethodAllocation&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (RefundId, OriginalPaymentId)&lt;br/&gt;FK (OriginalMethodAllocationId, OriginalPaymentId)&lt;br/&gt;OriginalPaymentId [enforcement key]&lt;br/&gt;Amount&lt;br/&gt;ReferenceNumber?&lt;br/&gt;CK Amount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="490" y="1010" width="420" height="280"/>
+        </mxCell>
+        <mxCell id="refund-appointment-allocation" value="&lt;b&gt;RefundAppointmentAllocation&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (RefundId, OriginalPaymentId)&lt;br/&gt;FK (OriginalAppointmentAllocationId, OriginalPaymentId)&lt;br/&gt;OriginalPaymentId [enforcement key]&lt;br/&gt;Amount&lt;br/&gt;CK Amount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="970" y="1010" width="440" height="270"/>
+        </mxCell>
+        <mxCell id="refund-package-allocation" value="&lt;b&gt;RefundPackageAllocation&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (RefundId, OriginalPaymentId)&lt;br/&gt;FK (OriginalPackageAllocationId, OriginalPaymentId)&lt;br/&gt;OriginalPaymentId [enforcement key]&lt;br/&gt;Amount&lt;br/&gt;CK Amount &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1470" y="1010" width="440" height="270"/>
+        </mxCell>
+        <mxCell id="fn-rules" value="&lt;b&gt;Financial invariants&lt;/b&gt;&lt;hr/&gt;• A payment may cover several bookings/packages and use several payment methods, but all targets must belong to Payment.PatientId.&lt;br/&gt;• Patient packages support full payment only; an allocation targets the PatientPackage, never an individual session.&lt;br/&gt;• Sum(method allocations) = Payment.TotalAmount = sum(booking + package allocations).&lt;br/&gt;• A paid booking is cancelled only after admin approval; approval cancels the booking immediately and the secretary executes the full remaining refund later from an active shift.&lt;br/&gt;• Every refund allocation belongs to Refund.OriginalPaymentId and may use only original payment methods without exceeding each method's remaining balance.&lt;br/&gt;• Sum(refund method allocations) = Refund.Amount = the booking's full remaining refundable amount; partial booking refunds are not supported.&lt;br/&gt;• Cash revenue appears in the shift/day in which collection occurs, even if the booking was created earlier.&lt;br/&gt;• Expected cash = opening balance + cash collections + cash corrections − cash refunds − cash expenses/withdrawals and may be negative with a warning.&lt;br/&gt;• The secretary enters DeclaredCash first; only then does the system reveal CashVariance. Every variance is retained.&lt;br/&gt;• Opening balance is always recorded explicitly, including a zero balance, before any collection.&lt;br/&gt;• Effective Open/Grace state is evaluated from Africa/Cairo time on request; no background scheduler is required.&lt;br/&gt;• The closing grace period counts toward same-secretary overlap; different secretaries may overlap because each has an independent drawer.&lt;br/&gt;• Payment.CollectedByUserId must match the secretary who owns the shift's CashDrawer.&lt;br/&gt;• Future shifts are cancelled rather than deleted; closed and cancelled shifts are immutable.&lt;br/&gt;• A closed shift is immutable to secretaries. Only an admin can post a dated corrective/reversal movement with a mandatory reason.&lt;br/&gt;• Electronic methods are reconciled separately and then combined in the shift summary." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=12;fontColor=#1f2937;dashed=1;fillColor=#fffdf2;strokeColor=#d6b656;strokeWidth=1.3;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1990" y="930" width="1260" height="610"/>
+        </mxCell>
+        <mxCell id="fn-e01" value="1 — 0..1 | owns as secretary" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="user-ref" target="cash-drawer">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e02" value="1 — N | has" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="cash-drawer" target="shift">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e03" value="1 — N | records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="shift" target="shift-movement">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e04" value="0..1 — N | classifies method" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment-method" target="shift-movement">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e05" value="1 — N | collects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="shift" target="payment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e06" value="1 — N | pays" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient-ref" target="payment">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e07" value="1 — N | splits by method" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment" target="payment-method-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e08" value="1 — N | used by" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment-method" target="payment-method-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e09" value="1 — N | allocates to booking" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment" target="appointment-payment-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e10" value="1 — N | receives" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment-ref" target="appointment-payment-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e11" value="1 — N | allocates to package" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment" target="package-payment-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e12" value="1 — N | receives" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient-package-ref" target="package-payment-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e13" value="1 — 0..1 | authorizes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="approval-ref" target="refund">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e14" value="1 — N | is original for" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment" target="refund">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e15" value="1 — N | executes during" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="shift" target="refund">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e16" value="1 — N | returns by method" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="refund" target="refund-method-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e17" value="1 — N | reverses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment-method-allocation" target="refund-method-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e18" value="1 — N | reverses booking allocation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="refund" target="refund-appointment-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e19" value="1 — N | is original" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment-payment-allocation" target="refund-appointment-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e20" value="1 — N | reverses package allocation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="refund" target="refund-package-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="fn-e21" value="1 — N | is original" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="package-payment-allocation" target="refund-package-allocation">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="packages-discounts" name="05 - Packages &amp; Discounts">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3000" pageHeight="1700" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="pd-title" value="&lt;b&gt;Packages, Session Consumption &amp; Discounts&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;Purchased package composition is snapshotted so later catalog changes never rewrite history&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontColor=#1f2937;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="2450" height="62"/>
+        </mxCell>
+        <mxCell id="service-ref" value="&lt;b&gt;Service&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DepartmentId&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;See page 02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="120" width="300" height="135"/>
+        </mxCell>
+        <mxCell id="patient-ref" value="&lt;b&gt;Patient&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;See page 03" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="400" y="120" width="300" height="105"/>
+        </mxCell>
+        <mxCell id="appointment-service-ref" value="&lt;b&gt;AppointmentService&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK ServiceId&lt;br/&gt;AK (Id, ServiceId)&lt;br/&gt;See page 02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="760" y="120" width="320" height="135"/>
+        </mxCell>
+        <mxCell id="department-ref" value="&lt;b&gt;Department&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;See page 02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1140" y="120" width="300" height="105"/>
+        </mxCell>
+        <mxCell id="user-ref" value="&lt;b&gt;ApplicationUser&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;Admin&lt;br/&gt;See page 06" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1500" y="120" width="300" height="115"/>
+        </mxCell>
+        <mxCell id="package" value="&lt;b&gt;Package&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK DepartmentId&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;AK Name&lt;br/&gt;SessionCount&lt;br/&gt;BasePrice&lt;br/&gt;ActivationGraceDays?&lt;br/&gt;UsageDurationDays?&lt;br/&gt;IsActive / IsArchived&lt;br/&gt;CreatedByAdminUserId&lt;br/&gt;UpdatedByAdminUserId?&lt;br/&gt;CreatedAt / UpdatedAt?&lt;br/&gt;RowVersion&lt;br/&gt;CK sessions 1..500; prices ≥ 0; durations NULL or &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="410" width="330" height="270"/>
+        </mxCell>
+        <mxCell id="package-service" value="&lt;b&gt;PackageService&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (PackageId, DepartmentId)&lt;br/&gt;FK (ServiceId, DepartmentId)&lt;br/&gt;AK (PackageId, ServiceId)&lt;br/&gt;SessionsIncluded&lt;br/&gt;UnitPriceAtDefinition&lt;br/&gt;IsActive&lt;br/&gt;RowVersion&lt;br/&gt;CK SessionsIncluded / UnitPrice &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="430" y="410" width="340" height="245"/>
+        </mxCell>
+        <mxCell id="patient-package" value="&lt;b&gt;PatientPackage&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK PatientId&lt;br/&gt;FK (PackageId, DepartmentId)&lt;br/&gt;AK (Id, DepartmentId)&lt;br/&gt;AK (Id, PackageId)&lt;br/&gt;PackageNameSnapshot / DepartmentNameSnapshot&lt;br/&gt;TotalSessions&lt;br/&gt;BasePriceSnapshot / NetPriceSnapshot&lt;br/&gt;ActivationGraceDaysSnapshot / UsageDurationDaysSnapshot&lt;br/&gt;PaymentStatus (Unpaid/NotRequired/Paid)&lt;br/&gt;Status (Active/Completed/Suspended/Cancelled)&lt;br/&gt;RegisteredAt / RegisteredByUserId&lt;br/&gt;ActivationWindowStartedAt? / ActivationDeadlineAt?&lt;br/&gt;FirstUsedAt? / ExpiresAt?&lt;br/&gt;UpdatedByAdminUserId? / UpdatedAt?&lt;br/&gt;IdempotencyKey [unique] / RequestFingerprint&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="830" y="410" width="390" height="470"/>
+        </mxCell>
+        <mxCell id="patient-package-service" value="&lt;b&gt;PatientPackageService&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (PatientPackageId, DepartmentId)&lt;br/&gt;FK (SourcePackageServiceId, SourcePackageId, ServiceId)&lt;br/&gt;FK (ServiceId, DepartmentId)&lt;br/&gt;AK (PatientPackageId, ServiceId)&lt;br/&gt;AK (Id, PatientPackageId, ServiceId)&lt;br/&gt;ServiceNameSnapshot&lt;br/&gt;SpecializationIdSnapshot / SpecializationNameSnapshot&lt;br/&gt;SessionsPurchased&lt;br/&gt;UnitPriceSnapshot&lt;br/&gt;CK SessionsPurchased / UnitPrice &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1280" y="410" width="390" height="350"/>
+        </mxCell>
+        <mxCell id="package-session" value="&lt;b&gt;PackageSession&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK (PatientPackageServiceId, PatientPackageId, ServiceId)&lt;br/&gt;PatientPackageId / ServiceId [enforcement keys]&lt;br/&gt;AK (PatientPackageServiceId, SequenceNumber)&lt;br/&gt;SequenceNumber&lt;br/&gt;Status (Available/Reserved/Consumed)&lt;br/&gt;ReservedAt? / ConsumedAt?&lt;br/&gt;UnitPriceSnapshot&lt;br/&gt;RowVersion&lt;br/&gt;Appointment linkage is a later migration" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1730" y="410" width="430" height="350"/>
+        </mxCell>
+        <mxCell id="discount" value="&lt;b&gt;Discount&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;Name&lt;br/&gt;Type (Percent / FixedAmount)&lt;br/&gt;Value&lt;br/&gt;AppliesTo (Bookings/Packages/Both)&lt;br/&gt;ScopeMode (All / Selected)&lt;br/&gt;Priority&lt;br/&gt;StartAt / EndAt?&lt;br/&gt;IsActive&lt;br/&gt;CreatedByAdminUserId&lt;br/&gt;CreatedAt / UpdatedAt&lt;br/&gt;RowVersion&lt;br/&gt;CK percent 0..100; fixed &amp;gt; 0" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2200" y="410" width="390" height="345"/>
+        </mxCell>
+        <mxCell id="discount-department" value="&lt;b&gt;DiscountDepartment&lt;/b&gt;&lt;hr/&gt;PK (DiscountId, DepartmentId)&lt;br/&gt;FK DiscountId&lt;br/&gt;FK DepartmentId" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="970" width="340" height="150"/>
+        </mxCell>
+        <mxCell id="discount-service" value="&lt;b&gt;DiscountService&lt;/b&gt;&lt;hr/&gt;PK (DiscountId, ServiceId)&lt;br/&gt;FK DiscountId&lt;br/&gt;FK ServiceId" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="970" width="340" height="150"/>
+        </mxCell>
+        <mxCell id="discount-package" value="&lt;b&gt;DiscountPackage&lt;/b&gt;&lt;hr/&gt;PK (DiscountId, PackageId)&lt;br/&gt;FK DiscountId&lt;br/&gt;FK PackageId" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="840" y="970" width="340" height="150"/>
+        </mxCell>
+        <mxCell id="pd-rules" value="&lt;b&gt;Package and discount invariants&lt;/b&gt;&lt;hr/&gt;• A purchasable Package requires positive activation-grace and usage-duration days; old incomplete definitions remain historical only.&lt;br/&gt;• Registration snapshots package, department, specialization, service, quantity, unit price, total price and both time policies.&lt;br/&gt;• PatientPackage.TotalSessions equals the sum of PatientPackageService.SessionsPurchased, with one uniquely ordered PackageSession per purchased session.&lt;br/&gt;• Non-free packages remain unpaid and unusable until a later full-payment flow; free packages need no zero-value Payment and start their activation window at registration.&lt;br/&gt;• Usage duration begins only on the first completed package session. No-show neither starts duration nor consumes a session.&lt;br/&gt;• A booking will reserve one PackageSession; final consumption occurs only when its visit is completed. Reservation and consumption are implemented in later phases.&lt;br/&gt;• Department closure blocks use dynamically without changing deadlines. Admin may only extend an existing deadline forward, with rowversion, reason and audit.&lt;br/&gt;• Registration uses actor-bound idempotency; composite keys keep patient/package/service ownership aligned; mutable records use rowversion.&lt;br/&gt;• Discount scopes may target a full department, selected services, selected packages, or all eligible items.&lt;br/&gt;• Only one discount applies to a line. The chosen discount and calculated values are snapshotted on AppointmentService/PatientPackage.&lt;br/&gt;• An admin may force-apply or exclude a discount for one booking with a mandatory reason; the secretary cannot edit price.&lt;br/&gt;• Fixed discounts cannot exceed the base amount; only bookings/purchases created after StartAt are eligible." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=12;fontColor=#1f2937;dashed=1;fillColor=#fffdf2;strokeColor=#d6b656;strokeWidth=1.3;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1260" y="910" width="1420" height="500"/>
+        </mxCell>
+        <mxCell id="pd-e18" value="1 — N | owns definitions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="department-ref" target="package">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e19" value="1 — N | creates / updates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="user-ref" target="package">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e01" value="1 — N | defines composition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="package" target="package-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e02" value="1 — N | is included" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="service-ref" target="package-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e03" value="1 — N | purchases" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient-ref" target="patient-package">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e04" value="1 — 0..N | is optional source" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="package" target="patient-package">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e05" value="1 — N | snapshots composition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient-package" target="patient-package-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e06" value="0..1 — N | is source" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="package-service" target="patient-package-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e07" value="1 — N | identifies service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="service-ref" target="patient-package-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e08" value="1 — N | owns sessions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="patient-package-service" target="package-session">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e09" value="0..1 — 0..1 | reserves / consumes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment-service-ref" target="package-session">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e10" value="1 — N | targets" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="discount" target="discount-department">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e11" value="1 — N | is eligible" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="department-ref" target="discount-department">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e12" value="1 — N | targets" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="discount" target="discount-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e13" value="1 — N | is eligible" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="service-ref" target="discount-service">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e14" value="1 — N | targets" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="discount" target="discount-package">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e15" value="1 — N | is eligible" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="package" target="discount-package">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e16" value="0..1 — N | is snapshotted on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="discount" target="patient-package">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="pd-e17" value="1 — N | configures" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="user-ref" target="discount">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="identity-approval-audit" name="06 - Identity, Approvals &amp; Audit">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2750" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="ia-title" value="&lt;b&gt;Identity, Security, Approvals &amp; Audit&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;Admin-provisioned accounts, typed approval targets and an immutable audit trail&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=24;fontColor=#1f2937;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="2250" height="62"/>
+        </mxCell>
+        <mxCell id="application-user" value="&lt;b&gt;ApplicationUser&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FullName&lt;br/&gt;AK PhoneNormalized&lt;br/&gt;AK EmailNormalized? (filtered)&lt;br/&gt;AK UserNameNormalized&lt;br/&gt;PasswordHash&lt;br/&gt;Status (Active/Locked/Disabled)&lt;br/&gt;FailedLoginCount&lt;br/&gt;LockoutEndUtc?&lt;br/&gt;IsArchived&lt;br/&gt;CreatedByAdminUserId?&lt;br/&gt;CreatedAt / UpdatedAt&lt;br/&gt;LastLoginAt?&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="120" width="360" height="365"/>
+        </mxCell>
+        <mxCell id="application-role" value="&lt;b&gt;ApplicationRole&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;AK Name&lt;br/&gt;Name = Admin | Secretary&lt;br/&gt;IsSystemRole" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="460" y="120" width="320" height="155"/>
+        </mxCell>
+        <mxCell id="application-user-role" value="&lt;b&gt;ApplicationUserRole&lt;/b&gt;&lt;hr/&gt;PK/FK UserId&lt;br/&gt;FK RoleId&lt;br/&gt;AK UserId (exactly one role)&lt;br/&gt;AssignedByAdminUserId&lt;br/&gt;AssignedAt" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="840" y="120" width="330" height="190"/>
+        </mxCell>
+        <mxCell id="user-session" value="&lt;b&gt;UserSession&lt;/b&gt;&lt;hr/&gt;PK Id (GUID)&lt;br/&gt;FK UserId&lt;br/&gt;AK RefreshTokenHash&lt;br/&gt;CreatedAt&lt;br/&gt;ExpiresAt&lt;br/&gt;RevokedAt?&lt;br/&gt;LastSeenAt?&lt;br/&gt;ClientFingerprint?&lt;br/&gt;CK CreatedAt &amp;lt; ExpiresAt" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="120" width="340" height="255"/>
+        </mxCell>
+        <mxCell id="login-attempt" value="&lt;b&gt;LoginAttempt&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK UserId?&lt;br/&gt;UserNameAttempted&lt;br/&gt;WasSuccessful&lt;br/&gt;FailureReason?&lt;br/&gt;OccurredAt&lt;br/&gt;IpAddress?&lt;br/&gt;ClientInfo?" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1630" y="120" width="340" height="235"/>
+        </mxCell>
+        <mxCell id="auth-policy" value="&lt;b&gt;AuthenticationPolicy&lt;/b&gt;&lt;hr/&gt;PK Id (singleton, CK Id = 1)&lt;br/&gt;MaxFailedAttempts (default 5)&lt;br/&gt;LockoutMinutes&lt;br/&gt;SessionLifetimeMinutes&lt;br/&gt;UpdatedByAdminUserId&lt;br/&gt;UpdatedAt&lt;br/&gt;RowVersion" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2030" y="120" width="350" height="220"/>
+        </mxCell>
+        <mxCell id="appointment-ref" value="&lt;b&gt;Appointment&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;See page 02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="650" width="280" height="105"/>
+        </mxCell>
+        <mxCell id="payment-ref" value="&lt;b&gt;Payment&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;AK (Id, PatientId)&lt;br/&gt;See page 04" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="380" y="650" width="280" height="120"/>
+        </mxCell>
+        <mxCell id="shift-ref" value="&lt;b&gt;Shift&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;See page 04" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="720" y="650" width="280" height="105"/>
+        </mxCell>
+        <mxCell id="approval-request" value="&lt;b&gt;ApprovalRequest&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;RequestType = AppointmentCancellation&lt;br/&gt;FK AppointmentId&lt;br/&gt;FK OriginalPaymentId?&lt;br/&gt;RequestedAmount? [server-calculated]&lt;br/&gt;RequestedByUserId&lt;br/&gt;RequestedAt&lt;br/&gt;RequestNote&lt;br/&gt;Status (Pending/Approved/Rejected/Cancelled)&lt;br/&gt;ReviewedByAdminUserId?&lt;br/&gt;ReviewedAt?&lt;br/&gt;DecisionReason?&lt;br/&gt;RowVersion&lt;br/&gt;CK payment and amount coexist" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e6e6e6;strokeColor=#666666;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1060" y="570" width="410" height="410"/>
+        </mxCell>
+        <mxCell id="refund-ref" value="&lt;b&gt;Refund&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b'&gt;&lt;i&gt;external reference&lt;/i&gt;&lt;/font&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK ApprovalRequestId&lt;br/&gt;See page 04" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#f5f5f5;strokeColor=#9ca3af;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1530" y="650" width="280" height="120"/>
+        </mxCell>
+        <mxCell id="audit-log" value="&lt;b&gt;AuditLog&lt;/b&gt;&lt;hr/&gt;PK Id&lt;br/&gt;FK ActorUserId?&lt;br/&gt;ActorType (User / System)&lt;br/&gt;Action&lt;br/&gt;EntityType / EntityId&lt;br/&gt;OccurredAt&lt;br/&gt;Reason?&lt;br/&gt;OldValuesJson?&lt;br/&gt;NewValuesJson?&lt;br/&gt;CorrelationId?&lt;br/&gt;IpAddress?&lt;br/&gt;CK actor consistency&lt;br/&gt;Append-only" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingTop=8;spacingLeft=10;spacingRight=8;fontSize=12;fontColor=#1f2937;fillColor=#e6e6e6;strokeColor=#666666;strokeWidth=1.5;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1870" y="570" width="390" height="330"/>
+        </mxCell>
+        <mxCell id="ia-rules" value="&lt;b&gt;Security and approval rules&lt;/b&gt;&lt;hr/&gt;• The admin creates secretary accounts; self-service signup and email approval are out of scope.&lt;br/&gt;• Password hashes and refresh-token hashes only—never store plaintext secrets.&lt;br/&gt;• After five failed attempts, lock the account temporarily; the admin may unlock it earlier.&lt;br/&gt;• ApplicationUserRole has one row per user. Provisioning must enforce exactly one active Admin account.&lt;br/&gt;• AppointmentCancellation targets one Appointment; the server derives its original payment and full remaining refundable amount.&lt;br/&gt;• Only the single active Admin may approve/reject; approval immediately cancels the booking and releases its resources.&lt;br/&gt;• A secretary with a valid active shift executes an approved refund; the admin cannot change the approved amount.&lt;br/&gt;• Rejected/approved decisions require a reason where the workflow changes financial or confirmed-booking history.&lt;br/&gt;• AuditLog is append-only. Automated shift/status events use ActorType=System with ActorUserId NULL.&lt;br/&gt;• AdminOnly notes and security fields are excluded from secretary permissions and offline read-only snapshots.&lt;br/&gt;• Two-factor authentication is extension-ready but not required in the low-cost initial scope." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=12;fontColor=#1f2937;dashed=1;fillColor=#fffdf2;strokeColor=#d6b656;strokeWidth=1.3;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="2310" y="500" width="400" height="540"/>
+        </mxCell>
+        <mxCell id="ia-e01" value="1 — 1 | has exactly one role" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="application-user" target="application-user-role">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e02" value="1 — N | assigned to" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="application-role" target="application-user-role">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e03" value="1 — N | has" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="application-user" target="user-session">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e04" value="0..1 — N | may resolve to" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="application-user" target="login-attempt">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e05" value="1 — N | requests / reviews" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="application-user" target="approval-request">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e06" value="0..1 — N | target for cancellation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="appointment-ref" target="approval-request">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e07" value="0..1 — N | target for refund" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="payment-ref" target="approval-request">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e08" value="0..1 — N | target for cash movement" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="shift-ref" target="approval-request">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e09" value="1 — 0..1 | authorizes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="approval-request" target="refund-ref">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+        <mxCell id="ia-e10" value="0..1 — N | acts as" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#64748b;strokeWidth=1.25;labelBackgroundColor=#ffffff;startArrow=none;startFill=0;endArrow=classic;endFill=0;" edge="1" parent="1" source="application-user" target="audit-log">
+          <mxGeometry as="geometry" relative="1"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

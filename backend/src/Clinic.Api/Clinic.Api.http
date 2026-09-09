@@ -1,0 +1,11 @@
+@Clinic.Api_HostAddress = https://localhost:7234
+
+GET {{Clinic.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{Clinic.Api_HostAddress}}/api/auth/csrf
+Accept: application/json
+
+###
