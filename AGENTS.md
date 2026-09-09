@@ -173,7 +173,7 @@ unrelated operations.
 - Offline mode is read-only and never queues offline writes.
 
 The approved source of truth for entities and relationships is:
-`F:\Clinic\backend\ERD\Clinic_ERD_Final.drawio`.
+`F:\Clinic\ERD\Clinic_ERD_Final.drawio`.
 
 ## 10. Patterns and restraint
 
@@ -216,7 +216,7 @@ pattern ceremony.
 - Do not delete or weaken an existing test merely to make a change pass.
 - Keep architecture tests updated when an explicitly approved boundary changes.
 
-Mandatory verification from `F:\Clinic\backend`:
+Mandatory verification from `F:\Clinic`:
 
 ```powershell
 dotnet restore Clinic.slnx
