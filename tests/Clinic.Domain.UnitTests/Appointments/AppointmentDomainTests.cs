@@ -96,4 +96,50 @@ public sealed class AppointmentDomainTests
         Assert.Equal(PaymentStatus.Paid, appointment.PaymentStatus);
         Assert.Equal(AppointmentStatus.Completed, appointment.Status);
     }
+
+    [Fact]
+    public void FullDiscountConfirmsAppointmentWithoutCreatingPaymentRequirement()
+    {
+        Appointment appointment = Appointment.Create(1, 2, 3, Start, false, 4,
+            Start.AddDays(-1));
+        appointment.AddService(10, 20, 30, 2, 100m, []);
+
+        appointment.ApplyDiscount(1, 30, 200m);
+        appointment.FinalizePricing();
+
+        Assert.Equal(200m, appointment.DiscountAmount);
+        Assert.Equal(0m, appointment.NetAmount);
+        Assert.Equal(PaymentStatus.NotRequired, appointment.PaymentStatus);
+        Assert.Equal(AppointmentStatus.Confirmed, appointment.Status);
+        Assert.Throws<DomainException>(() => appointment.Cancel(4, Start, null));
+    }
+
+    [Fact]
+    public void SuspendedFullDiscountRestoresAsConfirmed()
+    {
+        Appointment appointment = Appointment.Create(1, 2, 3, Start, true, 4,
+            Start.AddDays(-1));
+        appointment.AddService(10, 20, 30, 1, 100m, []);
+
+        appointment.ApplyDiscount(1, 30, 100m);
+        appointment.FinalizePricing();
+        appointment.Reactivate(4, Start);
+
+        Assert.Equal(AppointmentStatus.Confirmed, appointment.Status);
+        Assert.Equal(PaymentStatus.NotRequired, appointment.PaymentStatus);
+    }
+
+    [Fact]
+    public void AdminDiscountOverrideAllowsAnOptionalReason()
+    {
+        Appointment appointment = Appointment.Create(1, 2, 3, Start, false, 4,
+            Start.AddDays(-1));
+        appointment.AddService(10, 20, 30, 1, 100m, []);
+
+        appointment.ApplyDiscount(1, 30, 10m, DiscountOverrideMode.Force, 4);
+
+        AppointmentService service = Assert.Single(appointment.Services);
+        Assert.Equal(DiscountOverrideMode.Force, service.DiscountOverrideMode);
+        Assert.Null(service.DiscountOverrideReason);
+    }
 }

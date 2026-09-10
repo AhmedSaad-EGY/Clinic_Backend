@@ -14,7 +14,9 @@ public sealed class PatientPackageConfiguration : IEntityTypeConfiguration<Patie
             table.HasCheckConstraint("CK_PatientPackages_TotalSessions",
                 "[TotalSessions] BETWEEN 1 AND 500");
             table.HasCheckConstraint("CK_PatientPackages_Prices",
-                "[BasePriceSnapshot] >= 0 AND [NetPriceSnapshot] >= 0");
+                "[BasePriceSnapshot] >= 0 AND [DiscountAmountSnapshot] >= 0 AND [NetPriceSnapshot] >= 0 AND " +
+                "[NetPriceSnapshot] = [BasePriceSnapshot] - [DiscountAmountSnapshot] AND " +
+                "([DiscountId] IS NOT NULL OR [DiscountAmountSnapshot] = 0)");
             table.HasCheckConstraint("CK_PatientPackages_Durations",
                 $"[ActivationGraceDaysSnapshot] BETWEEN 1 AND {Package.MaximumDurationDays} AND " +
                 $"[UsageDurationDaysSnapshot] BETWEEN 1 AND {Package.MaximumDurationDays}");
@@ -34,6 +36,7 @@ public sealed class PatientPackageConfiguration : IEntityTypeConfiguration<Patie
         builder.Property(item => item.PackageNameSnapshot).HasMaxLength(200).IsRequired();
         builder.Property(item => item.DepartmentNameSnapshot).HasMaxLength(150).IsRequired();
         builder.Property(item => item.BasePriceSnapshot).HasPrecision(18, 2);
+        builder.Property(item => item.DiscountAmountSnapshot).HasPrecision(18, 2);
         builder.Property(item => item.NetPriceSnapshot).HasPrecision(18, 2);
         builder.Property(item => item.PaymentStatus).HasConversion<int>();
         builder.Property(item => item.Status).HasConversion<int>();
@@ -60,6 +63,8 @@ public sealed class PatientPackageConfiguration : IEntityTypeConfiguration<Patie
             .HasForeignKey(item => new { item.PackageId, item.DepartmentId })
             .HasPrincipalKey(item => new { item.Id, item.DepartmentId })
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(item => item.Discount).WithMany()
+            .HasForeignKey(item => item.DiscountId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ApplicationUser>().WithMany()
             .HasForeignKey(item => item.RegisteredByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ApplicationUser>().WithMany()

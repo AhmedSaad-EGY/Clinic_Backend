@@ -152,7 +152,7 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_Appointments_PackageLink", "([PatientPackageId] IS NULL AND [PackageCoveredAmount] = 0 AND [IdempotencyKey] IS NULL AND [RequestFingerprint] IS NULL) OR ([PatientPackageId] IS NOT NULL AND [PackageCoveredAmount] > 0 AND [PaymentStatus] = 5 AND [IdempotencyKey] IS NOT NULL AND LEN([RequestFingerprint]) = 64)");
 
-                            t.HasCheckConstraint("CK_Appointments_PaymentStatus", "[PaymentStatus] IN (1, 2, 3, 4, 5)");
+                            t.HasCheckConstraint("CK_Appointments_PaymentStatus", "[PaymentStatus] IN (1, 2, 3, 4, 5, 6)");
 
                             t.HasCheckConstraint("CK_Appointments_Status", "[Status] IN (1, 2, 3, 4, 5, 6)");
 
@@ -232,6 +232,19 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<long?>("DiscountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DiscountOverrideByAdminUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("DiscountOverrideMode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DiscountOverrideReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<long>("DoctorServiceId")
                         .HasColumnType("bigint");
 
@@ -283,6 +296,10 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                     b.HasAlternateKey("Id", "ServiceId");
 
+                    b.HasIndex("DiscountId");
+
+                    b.HasIndex("DiscountOverrideByAdminUserId");
+
                     b.HasIndex("AppointmentId", "DepartmentId");
 
                     b.HasIndex("AppointmentId", "SequenceNumber")
@@ -297,7 +314,9 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                     b.ToTable("AppointmentServices", "appointments", t =>
                         {
-                            t.HasCheckConstraint("CK_AppointmentServices_Amounts", "[UnitPrice] > 0 AND [GrossAmount] = [UnitPrice] * [Quantity] AND [DiscountAmount] >= 0 AND [PackageCoveredAmount] >= 0 AND [NetAmount] = [GrossAmount] - [DiscountAmount] - [PackageCoveredAmount]");
+                            t.HasCheckConstraint("CK_AppointmentServices_Amounts", "[UnitPrice] > 0 AND [GrossAmount] = [UnitPrice] * [Quantity] AND [DiscountAmount] >= 0 AND [PackageCoveredAmount] >= 0 AND [NetAmount] >= 0 AND [NetAmount] = [GrossAmount] - [DiscountAmount] - [PackageCoveredAmount]");
+
+                            t.HasCheckConstraint("CK_AppointmentServices_Discount", "([DiscountId] IS NOT NULL OR [DiscountAmount] = 0) AND ([DiscountOverrideMode] IS NULL AND [DiscountOverrideByAdminUserId] IS NULL AND [DiscountOverrideReason] IS NULL OR [DiscountOverrideMode] = 1 AND [DiscountId] IS NOT NULL AND [DiscountOverrideByAdminUserId] IS NOT NULL AND ([DiscountOverrideReason] IS NULL OR LEN([DiscountOverrideReason]) BETWEEN 1 AND 500) OR [DiscountOverrideMode] = 2 AND [DiscountId] IS NULL AND [DiscountAmount] = 0 AND [DiscountOverrideByAdminUserId] IS NOT NULL AND ([DiscountOverrideReason] IS NULL OR LEN([DiscountOverrideReason]) BETWEEN 1 AND 500))");
 
                             t.HasCheckConstraint("CK_AppointmentServices_Quantity", "[Quantity] > 0");
 
@@ -1643,6 +1662,142 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Clinic.Domain.Discounts.Discount", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AppliesTo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasPrecision(0)
+                        .HasColumnType("datetimeoffset(0)");
+
+                    b.Property<long>("CreatedByAdminUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("EndAt")
+                        .HasPrecision(0)
+                        .HasColumnType("datetimeoffset(0)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("ScopeMode")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("StartAt")
+                        .HasPrecision(0)
+                        .HasColumnType("datetimeoffset(0)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasPrecision(0)
+                        .HasColumnType("datetimeoffset(0)");
+
+                    b.Property<long?>("UpdatedByAdminUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByAdminUserId");
+
+                    b.HasIndex("UpdatedByAdminUserId");
+
+                    b.HasIndex("AppliesTo", "ScopeMode")
+                        .HasDatabaseName("IX_Discounts_AppliesTo_ScopeMode");
+
+                    b.HasIndex("IsActive", "IsArchived", "StartAt", "EndAt")
+                        .HasDatabaseName("IX_Discounts_EffectivePeriod");
+
+                    b.ToTable("Discounts", "discounts", t =>
+                        {
+                            t.HasCheckConstraint("CK_Discounts_AppliesTo", "[AppliesTo] IN (1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_Discounts_Archive", "[IsArchived] = 0 OR [IsActive] = 0");
+
+                            t.HasCheckConstraint("CK_Discounts_Period", "[StartAt] < [EndAt]");
+
+                            t.HasCheckConstraint("CK_Discounts_ScopeMode", "[ScopeMode] IN (1, 2)");
+
+                            t.HasCheckConstraint("CK_Discounts_Type", "[Type] IN (1, 2)");
+
+                            t.HasCheckConstraint("CK_Discounts_Value", "([Type] = 1 AND [Value] BETWEEN 0 AND 100) OR ([Type] = 2 AND [Value] > 0)");
+                        });
+                });
+
+            modelBuilder.Entity("Clinic.Domain.Discounts.DiscountDepartment", b =>
+                {
+                    b.Property<long>("DiscountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DepartmentId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("DiscountId", "DepartmentId");
+
+                    b.HasIndex("DepartmentId")
+                        .HasDatabaseName("IX_DiscountDepartments_DepartmentId");
+
+                    b.ToTable("DiscountDepartments", "discounts");
+                });
+
+            modelBuilder.Entity("Clinic.Domain.Discounts.DiscountPackage", b =>
+                {
+                    b.Property<long>("DiscountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PackageId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("DiscountId", "PackageId");
+
+                    b.HasIndex("PackageId")
+                        .HasDatabaseName("IX_DiscountPackages_PackageId");
+
+                    b.ToTable("DiscountPackages", "discounts");
+                });
+
+            modelBuilder.Entity("Clinic.Domain.Discounts.DiscountService", b =>
+                {
+                    b.Property<long>("DiscountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ServiceId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("DiscountId", "ServiceId");
+
+                    b.HasIndex("ServiceId")
+                        .HasDatabaseName("IX_DiscountServices_ServiceId");
+
+                    b.ToTable("DiscountServices", "discounts");
+                });
+
             modelBuilder.Entity("Clinic.Domain.Packages.Package", b =>
                 {
                     b.Property<long>("Id")
@@ -1940,6 +2095,13 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<decimal>("DiscountAmountSnapshot")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("DiscountId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset?>("ExpiresAt")
                         .HasPrecision(0)
                         .HasColumnType("datetimeoffset(0)");
@@ -2006,6 +2168,8 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DiscountId");
+
                     b.HasIndex("IdempotencyKey")
                         .IsUnique()
                         .HasDatabaseName("UX_PatientPackages_IdempotencyKey");
@@ -2030,7 +2194,7 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_PatientPackages_PaymentTimeline", "([PaymentStatus] = 1 AND [NetPriceSnapshot] > 0 AND [ActivationWindowStartedAt] IS NULL AND [ActivationDeadlineAt] IS NULL) OR ([PaymentStatus] = 2 AND [NetPriceSnapshot] = 0 AND [ActivationWindowStartedAt] IS NOT NULL AND [ActivationDeadlineAt] IS NOT NULL) OR ([PaymentStatus] = 3 AND [NetPriceSnapshot] > 0 AND [ActivationWindowStartedAt] IS NOT NULL AND [ActivationDeadlineAt] IS NOT NULL)");
 
-                            t.HasCheckConstraint("CK_PatientPackages_Prices", "[BasePriceSnapshot] >= 0 AND [NetPriceSnapshot] >= 0");
+                            t.HasCheckConstraint("CK_PatientPackages_Prices", "[BasePriceSnapshot] >= 0 AND [DiscountAmountSnapshot] >= 0 AND [NetPriceSnapshot] >= 0 AND [NetPriceSnapshot] = [BasePriceSnapshot] - [DiscountAmountSnapshot] AND ([DiscountId] IS NOT NULL OR [DiscountAmountSnapshot] = 0)");
 
                             t.HasCheckConstraint("CK_PatientPackages_Status", "[Status] IN (1, 2, 3, 4)");
 
@@ -2903,6 +3067,16 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Clinic.Domain.Appointments.AppointmentService", b =>
                 {
+                    b.HasOne("Clinic.Domain.Discounts.Discount", "Discount")
+                        .WithMany()
+                        .HasForeignKey("DiscountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Clinic.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DiscountOverrideByAdminUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Clinic.Domain.Appointments.Appointment", "Appointment")
                         .WithMany("Services")
                         .HasForeignKey("AppointmentId", "DepartmentId")
@@ -2925,6 +3099,8 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
+
+                    b.Navigation("Discount");
 
                     b.Navigation("DoctorService");
 
@@ -3364,6 +3540,77 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                     b.Navigation("Prescription");
                 });
 
+            modelBuilder.Entity("Clinic.Domain.Discounts.Discount", b =>
+                {
+                    b.HasOne("Clinic.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByAdminUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Clinic.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByAdminUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Clinic.Domain.Discounts.DiscountDepartment", b =>
+                {
+                    b.HasOne("Clinic.Domain.Catalog.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Clinic.Domain.Discounts.Discount", "Discount")
+                        .WithMany("Departments")
+                        .HasForeignKey("DiscountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Discount");
+                });
+
+            modelBuilder.Entity("Clinic.Domain.Discounts.DiscountPackage", b =>
+                {
+                    b.HasOne("Clinic.Domain.Discounts.Discount", "Discount")
+                        .WithMany("Packages")
+                        .HasForeignKey("DiscountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Clinic.Domain.Packages.Package", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Discount");
+
+                    b.Navigation("Package");
+                });
+
+            modelBuilder.Entity("Clinic.Domain.Discounts.DiscountService", b =>
+                {
+                    b.HasOne("Clinic.Domain.Discounts.Discount", "Discount")
+                        .WithMany("Services")
+                        .HasForeignKey("DiscountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Clinic.Domain.Catalog.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Discount");
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("Clinic.Domain.Packages.Package", b =>
                 {
                     b.HasOne("Clinic.Infrastructure.Identity.ApplicationUser", null)
@@ -3451,6 +3698,11 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Clinic.Domain.Packages.PatientPackage", b =>
                 {
+                    b.HasOne("Clinic.Domain.Discounts.Discount", "Discount")
+                        .WithMany()
+                        .HasForeignKey("DiscountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Clinic.Domain.Patients.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
@@ -3474,6 +3726,8 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                         .HasPrincipalKey("Id", "DepartmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Discount");
 
                     b.Navigation("Package");
 
@@ -3758,6 +4012,15 @@ namespace Clinic.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Clinic.Domain.ClinicalRecords.PrescriptionRevision", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Clinic.Domain.Discounts.Discount", b =>
+                {
+                    b.Navigation("Departments");
+
+                    b.Navigation("Packages");
+
+                    b.Navigation("Services");
                 });
 
             modelBuilder.Entity("Clinic.Domain.Packages.Package", b =>

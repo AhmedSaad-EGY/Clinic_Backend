@@ -1,5 +1,7 @@
 using Clinic.Domain.Appointments;
 using Clinic.Domain.Catalog;
+using Clinic.Domain.Discounts;
+using Clinic.Infrastructure.Identity;
 using Clinic.Domain.Packages;
 using Clinic.Domain.Scheduling;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +18,13 @@ public sealed class AppointmentServiceConfiguration : IEntityTypeConfiguration<A
             table.HasCheckConstraint("CK_AppointmentServices_TimeRange", "[SegmentStartAt] < [SegmentEndAt]");
             table.HasCheckConstraint("CK_AppointmentServices_Quantity", "[Quantity] > 0");
             table.HasCheckConstraint("CK_AppointmentServices_Amounts",
-                "[UnitPrice] > 0 AND [GrossAmount] = [UnitPrice] * [Quantity] AND [DiscountAmount] >= 0 AND [PackageCoveredAmount] >= 0 AND [NetAmount] = [GrossAmount] - [DiscountAmount] - [PackageCoveredAmount]");
+                "[UnitPrice] > 0 AND [GrossAmount] = [UnitPrice] * [Quantity] AND [DiscountAmount] >= 0 AND [PackageCoveredAmount] >= 0 AND [NetAmount] >= 0 AND [NetAmount] = [GrossAmount] - [DiscountAmount] - [PackageCoveredAmount]");
             table.HasCheckConstraint("CK_AppointmentServices_Status", "[Status] IN (1, 2, 3, 4)");
+            table.HasCheckConstraint("CK_AppointmentServices_Discount",
+                "([DiscountId] IS NOT NULL OR [DiscountAmount] = 0) AND " +
+                "([DiscountOverrideMode] IS NULL AND [DiscountOverrideByAdminUserId] IS NULL AND [DiscountOverrideReason] IS NULL OR " +
+                "[DiscountOverrideMode] = 1 AND [DiscountId] IS NOT NULL AND [DiscountOverrideByAdminUserId] IS NOT NULL AND ([DiscountOverrideReason] IS NULL OR LEN([DiscountOverrideReason]) BETWEEN 1 AND 500) OR " +
+                "[DiscountOverrideMode] = 2 AND [DiscountId] IS NULL AND [DiscountAmount] = 0 AND [DiscountOverrideByAdminUserId] IS NOT NULL AND ([DiscountOverrideReason] IS NULL OR LEN([DiscountOverrideReason]) BETWEEN 1 AND 500))");
         });
 
         builder.HasKey(item => item.Id);
@@ -29,6 +36,8 @@ public sealed class AppointmentServiceConfiguration : IEntityTypeConfiguration<A
         builder.Property(item => item.UnitPrice).HasPrecision(18, 2);
         builder.Property(item => item.GrossAmount).HasPrecision(18, 2);
         builder.Property(item => item.DiscountAmount).HasPrecision(18, 2);
+        builder.Property(item => item.DiscountOverrideMode).HasConversion<int?>();
+        builder.Property(item => item.DiscountOverrideReason).HasMaxLength(500);
         builder.Property(item => item.NetAmount).HasPrecision(18, 2);
         builder.Property(item => item.PackageCoveredAmount).HasPrecision(18, 2);
         builder.Property(item => item.SegmentStartAt).HasPrecision(0);
@@ -46,6 +55,11 @@ public sealed class AppointmentServiceConfiguration : IEntityTypeConfiguration<A
         builder.HasOne(item => item.DoctorService).WithMany()
             .HasForeignKey(item => new { item.DoctorServiceId, item.ServiceId, item.DepartmentId })
             .HasPrincipalKey(item => new { item.Id, item.ServiceId, item.DepartmentId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(item => item.Discount).WithMany()
+            .HasForeignKey(item => item.DiscountId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany()
+            .HasForeignKey(item => item.DiscountOverrideByAdminUserId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(item => item.Devices).WithOne(item => item.AppointmentService)
             .HasForeignKey(item => new { item.AppointmentServiceId, item.ServiceId, item.DepartmentId })

@@ -4,6 +4,7 @@ using Clinic.Application.Common;
 using Clinic.Domain.Auditing;
 using Clinic.Domain.Packages;
 using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Discounts;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +36,8 @@ internal static class PackageInfrastructureSupport
         throw new InvalidOperationException("Package persistence failed.", exception);
     }
 
-    public static PackageModel Map(Package package, bool departmentStopped)
+    public static PackageModel Map(Package package, bool departmentStopped,
+        DiscountQuote? discount = null)
     {
         PackageService[] activeServices = package.Services.Where(item => item.IsActive).ToArray();
         string? reason = package.IsArchived ? "الباقة مؤرشفة."
@@ -58,7 +60,9 @@ internal static class PackageInfrastructureSupport
                 new PackageServiceModel(item.Id, item.ServiceId, item.Service.Name,
                     item.Service.SpecializationId, item.Service.Specialization.Name,
                     item.SessionsIncluded, item.UnitPriceAtDefinition, item.IsActive)).ToArray(),
-            package.CreatedAt, package.UpdatedAt, Convert.ToBase64String(package.RowVersion));
+            package.CreatedAt, package.UpdatedAt, Convert.ToBase64String(package.RowVersion),
+            discount?.DiscountId, discount?.Amount ?? 0,
+            package.BasePrice - (discount?.Amount ?? 0));
     }
 }
 

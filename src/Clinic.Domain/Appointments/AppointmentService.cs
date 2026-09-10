@@ -1,5 +1,6 @@
 using Clinic.Domain.Common;
 using Clinic.Domain.Catalog;
+using Clinic.Domain.Discounts;
 using Clinic.Domain.Packages;
 using Clinic.Domain.Scheduling;
 
@@ -58,6 +59,11 @@ public sealed class AppointmentService : Entity
     public decimal UnitPrice { get; private set; }
     public decimal GrossAmount { get; private set; }
     public decimal DiscountAmount { get; private set; }
+    public long? DiscountId { get; private set; }
+    public Discount? Discount { get; private set; }
+    public DiscountOverrideMode? DiscountOverrideMode { get; private set; }
+    public long? DiscountOverrideByAdminUserId { get; private set; }
+    public string? DiscountOverrideReason { get; private set; }
     public decimal NetAmount { get; private set; }
     public decimal PackageCoveredAmount { get; private set; }
     public AppointmentServiceStatus Status { get; private set; }
@@ -91,6 +97,37 @@ public sealed class AppointmentService : Entity
         NetAmount = 0;
     }
 
+    internal void ApplyDiscount(long discountId, decimal amount,
+        DiscountOverrideMode? overrideMode = null, long? adminUserId = null,
+        string? reason = null)
+    {
+        AppointmentGuard.PositiveId(discountId, "الخصم");
+        if (amount < 0 || amount > GrossAmount || decimal.Round(amount, 2) != amount)
+        {
+            throw new DomainException("قيمة خصم الخدمة غير صحيحة.");
+        }
+
+        ValidateOverride(overrideMode, adminUserId, reason);
+        DiscountId = discountId;
+        DiscountAmount = amount;
+        NetAmount = GrossAmount - amount;
+        DiscountOverrideMode = overrideMode;
+        DiscountOverrideByAdminUserId = adminUserId;
+        DiscountOverrideReason = NormalizeReason(reason);
+    }
+
+    internal void ExcludeDiscount(long adminUserId, string? reason)
+    {
+        ValidateOverride(Clinic.Domain.Appointments.DiscountOverrideMode.Exclude,
+            adminUserId, reason);
+        DiscountId = null;
+        DiscountAmount = 0;
+        NetAmount = GrossAmount;
+        DiscountOverrideMode = Clinic.Domain.Appointments.DiscountOverrideMode.Exclude;
+        DiscountOverrideByAdminUserId = adminUserId;
+        DiscountOverrideReason = NormalizeReason(reason);
+    }
+
     internal void ChangeDoctorService(long doctorServiceId)
     {
         AppointmentGuard.PositiveId(doctorServiceId, "إسناد الطبيب");
@@ -103,4 +140,22 @@ public sealed class AppointmentService : Entity
 
     internal void AttachPackageBooking(PackageSessionBooking booking) =>
         PackageSessionBooking = booking;
+
+    private static void ValidateOverride(DiscountOverrideMode? mode, long? adminUserId,
+        string? reason)
+    {
+        if (mode is null && adminUserId is null && reason is null)
+        {
+            return;
+        }
+
+        if (mode is null || !Enum.IsDefined(mode.Value) || adminUserId is not > 0 ||
+            reason?.Trim().Length > 500)
+        {
+            throw new DomainException("استثناء الخصم يحتاج أدمن وسببًا صحيحًا.");
+        }
+    }
+
+    private static string? NormalizeReason(string? reason) =>
+        string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
 }

@@ -5,6 +5,7 @@ using Clinic.Domain.Auditing;
 using Clinic.Domain.Cashier;
 using Clinic.Domain.Catalog;
 using Clinic.Domain.ClinicalRecords;
+using Clinic.Domain.Discounts;
 using Clinic.Domain.Patients;
 using Clinic.Domain.Packages;
 using Clinic.Domain.Scheduling;
@@ -50,6 +51,14 @@ public sealed class ClinicDbContext
     public DbSet<PackageSession> PackageSessions => Set<PackageSession>();
 
     public DbSet<PackageSessionBooking> PackageSessionBookings => Set<PackageSessionBooking>();
+
+    public DbSet<Discount> Discounts => Set<Discount>();
+
+    public DbSet<DiscountDepartment> DiscountDepartments => Set<DiscountDepartment>();
+
+    public DbSet<DiscountService> DiscountServices => Set<DiscountService>();
+
+    public DbSet<DiscountPackage> DiscountPackages => Set<DiscountPackage>();
 
     public DbSet<Doctor> Doctors => Set<Doctor>();
 

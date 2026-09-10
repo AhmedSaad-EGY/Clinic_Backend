@@ -18,7 +18,7 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
             table.HasCheckConstraint("CK_Appointments_StatusBeforeSuspension",
                 "([Status] = 6 AND [StatusBeforeSuspension] IN (1, 2)) OR " +
                 "([Status] <> 6 AND [StatusBeforeSuspension] IS NULL)");
-            table.HasCheckConstraint("CK_Appointments_PaymentStatus", "[PaymentStatus] IN (1, 2, 3, 4, 5)");
+            table.HasCheckConstraint("CK_Appointments_PaymentStatus", "[PaymentStatus] IN (1, 2, 3, 4, 5, 6)");
             table.HasCheckConstraint("CK_Appointments_Amounts",
                 "[SubtotalAmount] >= 0 AND [DiscountAmount] >= 0 AND [PackageCoveredAmount] >= 0 AND [NetAmount] >= 0 AND [NetAmount] = [SubtotalAmount] - [DiscountAmount] - [PackageCoveredAmount]");
             table.HasCheckConstraint("CK_Appointments_PackageLink",

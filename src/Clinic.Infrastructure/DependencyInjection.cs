@@ -2,6 +2,7 @@ using Clinic.Application.Abstractions.Appointments;
 using Clinic.Application.Abstractions.Cashier;
 using Clinic.Application.Abstractions.Catalog;
 using Clinic.Application.Abstractions.ClinicalRecords;
+using Clinic.Application.Abstractions.Discounts;
 using Clinic.Application.Abstractions.Identity;
 using Clinic.Application.Abstractions.Patients;
 using Clinic.Application.Abstractions.Packages;
@@ -11,6 +12,7 @@ using Clinic.Infrastructure.Appointments;
 using Clinic.Infrastructure.Cashier;
 using Clinic.Infrastructure.Catalog;
 using Clinic.Infrastructure.ClinicalRecords;
+using Clinic.Infrastructure.Discounts;
 using Clinic.Infrastructure.Identity;
 using Clinic.Infrastructure.Patients;
 using Clinic.Infrastructure.Packages;
@@ -103,6 +105,8 @@ public static class DependencyInjection
         services.AddScoped<IPackageQueryService, PackageQueryService>();
         services.AddScoped<IPatientPackageCommandService, PatientPackageCommandService>();
         services.AddScoped<IPatientPackageQueryService, PatientPackageQueryService>();
+        services.AddScoped<IDiscountService, DiscountService>();
+        services.AddScoped<DiscountResolver>();
         services.AddHostedService<SuspendedAppointmentRevalidationWorker>();
         services.AddScoped<DatabaseInitializer>();
 

@@ -2,6 +2,7 @@ using Clinic.Api.Contracts.Appointments;
 using Clinic.Api.Infrastructure.Errors;
 using Clinic.Application.Abstractions.Appointments;
 using Clinic.Application.Abstractions.Identity;
+using Clinic.Application.Common;
 using Clinic.Application.Features.Appointments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,30 @@ namespace Clinic.Api.Controllers;
 [Route("api/admin/appointments")]
 public sealed class AdminAppointmentsController : ControllerBase
 {
+    [HttpPost]
+    public async Task<ActionResult<AppointmentModel>> Create(
+        AdminCreateAppointmentRequest request,
+        [FromHeader(Name = "Idempotency-Key")] Guid? idempotencyKey,
+        CreateAppointmentCommandHandler handler, CancellationToken token)
+    {
+        Result<AppointmentModel> result = await handler.Handle(new CreateAppointmentCommand(
+            AppointmentsController.Map(request.PatientId, request.DepartmentId,
+                request.StartAt, request.Services, request.FollowUp,
+                request.PatientPackageId, idempotencyKey, request.DiscountOverride)), token);
+        if (result.IsFailure)
+        {
+            return this.ToActionResult(result);
+        }
+
+        if (result.Value.WasReplayed)
+        {
+            Response.Headers["Idempotency-Replayed"] = "true";
+            return Ok(result.Value);
+        }
+
+        return Created($"/api/appointments/{result.Value.Id}", result.Value);
+    }
+
     [HttpGet]
     public async Task<ActionResult<AppointmentPage>> Search(
         [FromQuery] AppointmentSearchRequest request,

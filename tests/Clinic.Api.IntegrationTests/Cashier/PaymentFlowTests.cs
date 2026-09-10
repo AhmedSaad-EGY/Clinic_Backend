@@ -646,7 +646,8 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         await using ClinicDbContext dbContext = new(options);
         AdjustableTimeProvider clock = new();
         clock.SetUtcNow(start);
-        Clinic.Infrastructure.Appointments.AppointmentService service = new(dbContext, clock);
+        Clinic.Infrastructure.Appointments.AppointmentService service = new(dbContext, clock,
+            new Clinic.Infrastructure.Discounts.DiscountResolver(dbContext));
         AppointmentInput input = new(seeded.PatientId, seeded.DepartmentId,
             start.AddHours(6), [new AppointmentLineInput(seeded.ServiceId,
                 seeded.DoctorId, 1, [])], null, seeded.PatientPackageId, Guid.NewGuid());

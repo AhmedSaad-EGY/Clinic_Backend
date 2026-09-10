@@ -1,6 +1,7 @@
 using Clinic.Application.Abstractions.Appointments;
 using Clinic.Application.Abstractions.Identity;
 using Clinic.Application.Common;
+using Clinic.Domain.Appointments;
 
 namespace Clinic.Application.Features.Appointments;
 
@@ -21,11 +22,17 @@ internal static class AppointmentValidation
         if (input.PatientPackageId is <= 0 ||
             input.PatientPackageId.HasValue &&
             (input.FollowUp is not null || input.Services.Any(item => item.Quantity != 1) ||
-             input.Services.Select(item => item.ServiceId).Distinct().Count() !=
-             input.Services.Count))
+             input.DiscountOverride is not null))
         {
             return Result.Failure(AppointmentErrors.Validation(
                 "حجز الباقة يحتاج مفتاح طلب صالح وخدمات غير مكررة بكمية واحدة."));
+        }
+
+        if (input.Services.Select(item => item.ServiceId).Distinct().Count() !=
+            input.Services.Count)
+        {
+            return Result.Failure(AppointmentErrors.Validation(
+                "لا يمكن تكرار الخدمة نفسها داخل الحجز."));
         }
 
         if (input.StartAt.Ticks % TimeSpan.TicksPerMinute != 0 ||
@@ -47,6 +54,18 @@ internal static class AppointmentValidation
         {
             return Result.Failure(AppointmentErrors.Validation(
                 "بيانات المتابعة المراد تحويلها إلى حجز غير صحيحة."));
+        }
+
+        if (input.DiscountOverride is DiscountOverrideInput discountOverride &&
+            (!Enum.IsDefined(discountOverride.Mode) ||
+             discountOverride.Mode == DiscountOverrideMode.Force &&
+                 discountOverride.DiscountId is not > 0 ||
+             discountOverride.Mode == DiscountOverrideMode.Exclude &&
+                  discountOverride.DiscountId.HasValue ||
+             discountOverride.Reason?.Trim().Length > 500))
+        {
+            return Result.Failure(AppointmentErrors.Validation(
+                "استثناء الخصم يحتاج اختيارًا صحيحًا وسببًا لا يتجاوز 500 حرف."));
         }
 
         return Result.Success();

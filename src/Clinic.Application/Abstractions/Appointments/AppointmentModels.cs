@@ -12,6 +12,9 @@ public sealed record AppointmentLineInput(
 
 public sealed record FollowUpBookingInput(long FollowUpId, string RowVersion);
 
+public sealed record DiscountOverrideInput(DiscountOverrideMode Mode, long? DiscountId,
+    string? Reason);
+
 public sealed record AppointmentInput(
     long PatientId,
     long DepartmentId,
@@ -19,7 +22,8 @@ public sealed record AppointmentInput(
     IReadOnlyCollection<AppointmentLineInput> Services,
     FollowUpBookingInput? FollowUp = null,
     long? PatientPackageId = null,
-    Guid? IdempotencyKey = null);
+    Guid? IdempotencyKey = null,
+    DiscountOverrideInput? DiscountOverride = null);
 
 public sealed record PackageSessionBookingModel(long Id, long PackageSessionId,
     int SequenceNumber, PackageSessionBookingStatus Status, DateTimeOffset ReservedAt,
@@ -39,7 +43,12 @@ public sealed record AppointmentServiceModel(
     decimal NetAmount,
     IReadOnlyCollection<long> DeviceIds,
     decimal PackageCoveredAmount,
-    PackageSessionBookingModel? PackageSessionBooking);
+    PackageSessionBookingModel? PackageSessionBooking,
+    long? DiscountId = null,
+    decimal DiscountAmount = 0,
+    DiscountOverrideMode? DiscountOverrideMode = null,
+    long? DiscountOverrideByAdminUserId = null,
+    string? DiscountOverrideReason = null);
 
 public sealed record AppointmentModel(
     long Id,
@@ -75,7 +84,9 @@ public sealed record AppointmentAvailability(
     DateTimeOffset EndAt,
     decimal SubtotalAmount,
     string? Reason,
-    IReadOnlyCollection<AvailableSlot> Alternatives);
+    IReadOnlyCollection<AvailableSlot> Alternatives,
+    decimal DiscountAmount = 0,
+    decimal NetAmount = 0);
 
 public sealed record AppointmentPage(
     IReadOnlyCollection<AppointmentModel> Items,

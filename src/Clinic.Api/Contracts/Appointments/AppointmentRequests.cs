@@ -12,6 +12,14 @@ public sealed record CreateAppointmentRequest(long PatientId, long DepartmentId,
     DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
     FollowUpBookingRequest? FollowUp = null, long? PatientPackageId = null);
 
+public sealed record DiscountOverrideRequest(DiscountOverrideMode Mode, long? DiscountId,
+    string? Reason);
+
+public sealed record AdminCreateAppointmentRequest(long PatientId, long DepartmentId,
+    DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
+    FollowUpBookingRequest? FollowUp = null, long? PatientPackageId = null,
+    DiscountOverrideRequest? DiscountOverride = null);
+
 public sealed record UpdateAppointmentRequest(long PatientId, long DepartmentId,
     DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
     string RowVersion, long? PatientPackageId = null);

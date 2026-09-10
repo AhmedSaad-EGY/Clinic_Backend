@@ -6,5 +6,6 @@ public enum PaymentStatus
     Paid = 2,
     PartiallyRefunded = 3,
     Refunded = 4,
-    CoveredByPackage = 5
+    CoveredByPackage = 5,
+    NotRequired = 6
 }

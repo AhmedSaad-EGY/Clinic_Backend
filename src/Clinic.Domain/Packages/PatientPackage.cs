@@ -1,5 +1,6 @@
 using Clinic.Domain.Catalog;
 using Clinic.Domain.Common;
+using Clinic.Domain.Discounts;
 using Clinic.Domain.Patients;
 
 namespace Clinic.Domain.Packages;
@@ -13,7 +14,8 @@ public sealed class PatientPackage : AggregateRoot
     }
 
     private PatientPackage(Patient patient, Package package, Guid idempotencyKey,
-        string requestFingerprint, long actorUserId, DateTimeOffset registeredAt)
+        string requestFingerprint, long actorUserId, DateTimeOffset registeredAt,
+        Discount? discount)
     {
         ArgumentNullException.ThrowIfNull(patient);
         ArgumentNullException.ThrowIfNull(package);
@@ -44,10 +46,13 @@ public sealed class PatientPackage : AggregateRoot
         DepartmentNameSnapshot = package.Department.Name;
         TotalSessions = package.SessionCount;
         BasePriceSnapshot = package.BasePrice;
-        NetPriceSnapshot = package.BasePrice;
+        Discount = discount;
+        DiscountId = discount?.Id;
+        DiscountAmountSnapshot = discount?.Calculate(package.BasePrice) ?? 0;
+        NetPriceSnapshot = package.BasePrice - DiscountAmountSnapshot;
         ActivationGraceDaysSnapshot = activationGraceDays;
         UsageDurationDaysSnapshot = usageDurationDays;
-        PaymentStatus = package.BasePrice == 0
+        PaymentStatus = NetPriceSnapshot == 0
             ? PatientPackagePaymentStatus.NotRequired
             : PatientPackagePaymentStatus.Unpaid;
         Status = PatientPackageStatus.Active;
@@ -83,6 +88,9 @@ public sealed class PatientPackage : AggregateRoot
     public string DepartmentNameSnapshot { get; private set; } = string.Empty;
     public int TotalSessions { get; private set; }
     public decimal BasePriceSnapshot { get; private set; }
+    public long? DiscountId { get; private set; }
+    public Discount? Discount { get; private set; }
+    public decimal DiscountAmountSnapshot { get; private set; }
     public decimal NetPriceSnapshot { get; private set; }
     public int ActivationGraceDaysSnapshot { get; private set; }
     public int UsageDurationDaysSnapshot { get; private set; }
@@ -102,8 +110,9 @@ public sealed class PatientPackage : AggregateRoot
     public IReadOnlyCollection<PatientPackageService> Services => _services;
 
     public static PatientPackage Register(Patient patient, Package package, Guid idempotencyKey,
-        string requestFingerprint, long actorUserId, DateTimeOffset registeredAt) =>
-        new(patient, package, idempotencyKey, requestFingerprint, actorUserId, registeredAt);
+        string requestFingerprint, long actorUserId, DateTimeOffset registeredAt,
+        Discount? discount = null) => new(patient, package, idempotencyKey,
+            requestFingerprint, actorUserId, registeredAt, discount);
 
     public void Extend(PatientPackageExtensionType extensionType, DateTimeOffset newDeadline,
         long adminUserId, DateTimeOffset updatedAt)

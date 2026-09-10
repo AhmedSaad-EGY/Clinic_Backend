@@ -14,7 +14,8 @@ public sealed record PackageModel(long Id, long DepartmentId, string DepartmentN
     int? UsageDurationDays, bool IsActive, bool IsArchived,
     bool IsAvailable, string? UnavailabilityReason,
     IReadOnlyCollection<PackageServiceModel> Services, DateTimeOffset CreatedAt,
-    DateTimeOffset? UpdatedAt, string RowVersion);
+    DateTimeOffset? UpdatedAt, string RowVersion, long? CurrentDiscountId = null,
+    decimal CurrentDiscountAmount = 0, decimal? CurrentNetPrice = null);
 
 public sealed record PackagePage(IReadOnlyCollection<PackageModel> Items, int PageNumber,
     int PageSize, int TotalCount);
@@ -38,7 +39,8 @@ public sealed record PatientPackageModel(long Id, long PatientId, long PatientFi
     DateTimeOffset? ActivationDeadlineAt, DateTimeOffset? FirstUsedAt,
     DateTimeOffset? ExpiresAt, int AvailableSessions, int ReservedSessions,
     int ConsumedSessions, IReadOnlyCollection<PatientPackageServiceModel> Services,
-    string RowVersion, PatientPackagePaymentReferenceModel? Payment = null);
+    string RowVersion, PatientPackagePaymentReferenceModel? Payment = null,
+    long? DiscountId = null, decimal DiscountAmount = 0);
 
 public sealed record PatientPackagePaymentReferenceModel(long PaymentId,
     string TransactionNumber, DateTimeOffset CollectedAt);

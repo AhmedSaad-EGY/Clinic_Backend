@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Clinic.Api.IntegrationTests.Identity;
 using Clinic.Domain.Catalog;
+using Clinic.Domain.Discounts;
 using Clinic.Domain.Packages;
 using Clinic.Domain.Patients;
 using Clinic.Infrastructure.Persistence;
@@ -27,6 +28,11 @@ public sealed class PatientPackageFlowTests : IClassFixture<IdentitySqlServerFix
             IdentitySqlServerFixture.InitialAdminPassword,
             IdentitySqlServerFixture.UpdatedAdminPassword);
         Setup setup = await CreateSetupAsync(admin, "مدفوعة", 900m, 3);
+        DiscountResponse discount = await ReadAsync<DiscountResponse>(await SendAsync(admin,
+            HttpMethod.Post, "/api/admin/discounts", new DiscountRequest("خصم شراء باقة",
+                DiscountType.FixedAmount, 200m, DiscountAppliesTo.Packages,
+                DiscountScopeMode.Selected, Now.AddHours(-1), Now.AddHours(1),
+                new([], [], [setup.PackageId])), HttpStatusCode.Created));
 
         _ = await SendAsync(admin, HttpMethod.Post,
             $"/api/patients/{setup.PatientId}/packages",
@@ -40,6 +46,9 @@ public sealed class PatientPackageFlowTests : IClassFixture<IdentitySqlServerFix
                 new RegisterRequest(setup.PackageId, setup.PackageRowVersion),
                 HttpStatusCode.Created, key));
         Assert.Equal(PatientPackagePaymentStatus.Unpaid, registered.PaymentStatus);
+        Assert.Equal(discount.Id, registered.DiscountId);
+        Assert.Equal(200m, registered.DiscountAmount);
+        Assert.Equal(700m, registered.NetPrice);
         Assert.False(registered.IsUsable);
         Assert.Equal(3, registered.AvailableSessions);
         Assert.Null(registered.ActivationDeadlineAt);
@@ -190,6 +199,13 @@ public sealed class PatientPackageFlowTests : IClassFixture<IdentitySqlServerFix
                     [SourcePackageId] = {anotherPackage.Id}
                 WHERE [PatientPackageId] = {patientPackageId}
                 """));
+        await Assert.ThrowsAsync<SqlException>(() =>
+            dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE [packages].[PatientPackages]
+                SET [DiscountAmountSnapshot] = [BasePriceSnapshot] + {1m},
+                    [NetPriceSnapshot] = {-1m}
+                WHERE [Id] = {patientPackageId}
+                """));
     }
 
     private static async Task<Setup> CreateSetupAsync(HttpClient admin, string suffix,
@@ -286,8 +302,15 @@ public sealed class PatientPackageFlowTests : IClassFixture<IdentitySqlServerFix
     private sealed record DepartmentResponse(long Id);
     private sealed record ServiceResponse(long Id);
     private sealed record PackageResponse(long Id, string RowVersion);
+    private sealed record DiscountTargetsRequest(IReadOnlyCollection<long> DepartmentIds,
+        IReadOnlyCollection<long> ServiceIds, IReadOnlyCollection<long> PackageIds);
+    private sealed record DiscountRequest(string Name, DiscountType Type, decimal Value,
+        DiscountAppliesTo AppliesTo, DiscountScopeMode ScopeMode,
+        DateTimeOffset StartAt, DateTimeOffset EndAt, DiscountTargetsRequest Targets);
+    private sealed record DiscountResponse(long Id);
     private sealed record PatientPackageResponse(long Id,
         PatientPackagePaymentStatus PaymentStatus, bool IsUsable, string? UnavailabilityReason,
-        int AvailableSessions, DateTimeOffset? ActivationDeadlineAt, string RowVersion);
+        int AvailableSessions, DateTimeOffset? ActivationDeadlineAt, string RowVersion,
+        long? DiscountId, decimal DiscountAmount, decimal NetPrice);
     private sealed record SessionResponse(int SequenceNumber, PackageSessionStatus Status);
 }

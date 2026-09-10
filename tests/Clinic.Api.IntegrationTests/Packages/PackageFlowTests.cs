@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Clinic.Api.IntegrationTests.Identity;
 using Clinic.Domain.Catalog;
+using Clinic.Domain.Discounts;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -46,13 +47,23 @@ public sealed class PackageFlowTests : IClassFixture<IdentitySqlServerFixture>
         Assert.True(package.IsAvailable);
         Assert.Equal(12, package.SessionCount);
 
+        DateTimeOffset discountStart = Now.AddHours(-1);
+        _ = await SendAsync(admin, HttpMethod.Post, "/api/admin/discounts",
+            new CreateDiscountRequest("خصم باقة", DiscountType.FixedAmount, 400m,
+                DiscountAppliesTo.Packages, DiscountScopeMode.Selected, discountStart,
+                discountStart.AddDays(1), new([], [], [package.Id])),
+            HttpStatusCode.Created);
+
         using HttpResponseMessage activePackageBlocksServiceArchive = await SendAsync(admin,
             HttpMethod.Post, $"/api/admin/services/{service.Id}/archive",
             new RowVersionRequest(service.RowVersion), HttpStatusCode.Conflict);
 
         PageResponse<PackageResponse> available = await ReadAsync<PageResponse<PackageResponse>>(
             await admin.GetAsync("/api/catalog/packages?pageNumber=1&pageSize=20"));
-        Assert.Contains(available.Items, item => item.Id == package.Id);
+        PackageResponse discounted = Assert.Single(available.Items,
+            item => item.Id == package.Id);
+        Assert.Equal(400m, discounted.CurrentDiscountAmount);
+        Assert.Equal(2000m, discounted.CurrentNetPrice);
 
         PackageResponse disabled = await ReadAsync<PackageResponse>(await SendAsync(admin,
             HttpMethod.Put, $"/api/admin/packages/{package.Id}/activation",
@@ -189,6 +200,12 @@ public sealed class PackageFlowTests : IClassFixture<IdentitySqlServerFixture>
     private sealed record SpecializationResponse(long Id);
     private sealed record ServiceResponse(long Id, string RowVersion);
     private sealed record PackageResponse(long Id, int SessionCount, bool IsAvailable,
-        string? UnavailabilityReason, string RowVersion);
+        string? UnavailabilityReason, string RowVersion,
+        decimal CurrentDiscountAmount, decimal CurrentNetPrice);
+    private sealed record DiscountTargetsRequest(IReadOnlyCollection<long> DepartmentIds,
+        IReadOnlyCollection<long> ServiceIds, IReadOnlyCollection<long> PackageIds);
+    private sealed record CreateDiscountRequest(string Name, DiscountType Type, decimal Value,
+        DiscountAppliesTo AppliesTo, DiscountScopeMode ScopeMode,
+        DateTimeOffset StartAt, DateTimeOffset EndAt, DiscountTargetsRequest Targets);
     private sealed record PageResponse<T>(IReadOnlyCollection<T> Items);
 }

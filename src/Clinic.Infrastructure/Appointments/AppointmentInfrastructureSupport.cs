@@ -62,7 +62,9 @@ internal static class AppointmentInfrastructureSupport
                         item.PackageSessionBooking.Status,
                         item.PackageSessionBooking.ReservedAt,
                         item.PackageSessionBooking.ReleasedAt,
-                        item.PackageSessionBooking.ConsumedAt)))
+                        item.PackageSessionBooking.ConsumedAt), item.DiscountId,
+                item.DiscountAmount, item.DiscountOverrideMode,
+                item.DiscountOverrideByAdminUserId, item.DiscountOverrideReason))
             .ToArray(), appointment.PatientPackageId, appointment.PackageCoveredAmount);
 
     public static IQueryable<Appointment> Details(IQueryable<Appointment> query) => query

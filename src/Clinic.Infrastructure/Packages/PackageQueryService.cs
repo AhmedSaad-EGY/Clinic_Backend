@@ -1,6 +1,7 @@
 using Clinic.Application.Abstractions.Packages;
 using Clinic.Application.Common;
 using Clinic.Domain.Packages;
+using Clinic.Infrastructure.Discounts;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,11 +11,14 @@ public sealed class PackageQueryService : IPackageQueryService
 {
     private readonly ClinicDbContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly DiscountResolver _discountResolver;
 
-    public PackageQueryService(ClinicDbContext dbContext, TimeProvider timeProvider)
+    public PackageQueryService(ClinicDbContext dbContext, TimeProvider timeProvider,
+        DiscountResolver discountResolver)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _discountResolver = discountResolver;
     }
 
     public async Task<Result<PackagePage>> SearchAdminAsync(AdminPackageFilter filter,
@@ -47,9 +51,15 @@ public sealed class PackageQueryService : IPackageQueryService
     {
         Package? package = await FullQuery().SingleOrDefaultAsync(item => item.Id == packageId,
             cancellationToken);
-        return package is null ? Result.Failure<PackageModel>(PackageErrors.NotFound)
-            : Result.Success(PackageInfrastructureSupport.Map(package,
-                await IsDepartmentStoppedAsync(package.DepartmentId, cancellationToken)));
+        if (package is null)
+        {
+            return Result.Failure<PackageModel>(PackageErrors.NotFound);
+        }
+        IReadOnlyDictionary<long, DiscountQuote> discounts = await _discountResolver
+            .QuotePackagesAsync([package], _timeProvider.GetUtcNow(), cancellationToken);
+        return Result.Success(PackageInfrastructureSupport.Map(package,
+            await IsDepartmentStoppedAsync(package.DepartmentId, cancellationToken),
+            discounts.GetValueOrDefault(package.Id)));
     }
 
     public async Task<Result<PackagePage>> SearchAvailableAsync(PackageCatalogFilter filter,
@@ -76,8 +86,14 @@ public sealed class PackageQueryService : IPackageQueryService
     {
         Package? package = await FullQuery(AvailableQuery())
             .SingleOrDefaultAsync(item => item.Id == packageId, cancellationToken);
-        return package is null ? Result.Failure<PackageModel>(PackageErrors.NotFound)
-            : Result.Success(PackageInfrastructureSupport.Map(package, departmentStopped: false));
+        if (package is null)
+        {
+            return Result.Failure<PackageModel>(PackageErrors.NotFound);
+        }
+        IReadOnlyDictionary<long, DiscountQuote> discounts = await _discountResolver
+            .QuotePackagesAsync([package], _timeProvider.GetUtcNow(), cancellationToken);
+        return Result.Success(PackageInfrastructureSupport.Map(package,
+            departmentStopped: false, discounts.GetValueOrDefault(package.Id)));
     }
 
     private IQueryable<Package> AvailableQuery()
@@ -105,8 +121,11 @@ public sealed class PackageQueryService : IPackageQueryService
         long[] stoppedIds = await StoppedDepartmentIdsAsync(
             packages.Select(item => item.DepartmentId).Distinct().ToArray(), cancellationToken);
         HashSet<long> stopped = stoppedIds.ToHashSet();
+        IReadOnlyDictionary<long, DiscountQuote> discounts = await _discountResolver
+            .QuotePackagesAsync(packages, _timeProvider.GetUtcNow(), cancellationToken);
         return new PackagePage(packages.Select(item => PackageInfrastructureSupport.Map(item,
-            stopped.Contains(item.DepartmentId))).ToArray(), pageNumber, pageSize, count);
+            stopped.Contains(item.DepartmentId), discounts.GetValueOrDefault(item.Id)))
+            .ToArray(), pageNumber, pageSize, count);
     }
 
     private IQueryable<Package> FullQuery(IQueryable<Package>? source = null) =>

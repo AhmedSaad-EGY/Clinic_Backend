@@ -10,6 +10,7 @@ using Clinic.Domain.ClinicalRecords;
 using Clinic.Domain.Common;
 using Clinic.Domain.Scheduling;
 using Clinic.Domain.Packages;
+using Clinic.Infrastructure.Discounts;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,11 +21,14 @@ public sealed class AppointmentService : IAppointmentService
 {
     private readonly ClinicDbContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly DiscountResolver _discountResolver;
 
-    public AppointmentService(ClinicDbContext dbContext, TimeProvider timeProvider)
+    public AppointmentService(ClinicDbContext dbContext, TimeProvider timeProvider,
+        DiscountResolver discountResolver)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _discountResolver = discountResolver;
     }
 
     public async Task<Result<AppointmentAvailability>> CheckAvailabilityAsync(
@@ -38,6 +42,13 @@ public sealed class AppointmentService : IAppointmentService
             return Result.Failure<AppointmentAvailability>(prepared.Error);
         }
 
+        if (!input.PatientPackageId.HasValue)
+        {
+            await _discountResolver.ApplyToAppointmentAsync(prepared.Value.Appointment,
+                input.DiscountOverride, actorUserId, _timeProvider.GetUtcNow(),
+                cancellationToken);
+        }
+
         string? reason = await ConflictReasonAsync(prepared.Value.Appointment,
             excludedAppointmentId, cancellationToken);
         IReadOnlyCollection<AvailableSlot> alternatives = reason is null ||
@@ -47,7 +58,8 @@ public sealed class AppointmentService : IAppointmentService
         return Result.Success(new AppointmentAvailability(reason is null,
             prepared.Value.Appointment.Status == AppointmentStatus.Suspended,
             prepared.Value.Appointment.EndAt, prepared.Value.Appointment.SubtotalAmount,
-            reason, alternatives));
+            reason, alternatives, prepared.Value.Appointment.DiscountAmount,
+            prepared.Value.Appointment.NetAmount));
     }
 
     public async Task<Result<AppointmentModel>> CreateAsync(long actorUserId,
@@ -106,6 +118,14 @@ public sealed class AppointmentService : IAppointmentService
                 }
 
                 await AcquireLocksAsync(prepared.Value, cancellationToken);
+                if (!input.PatientPackageId.HasValue)
+                {
+                    await TransactionalResourceLock.AcquireDiscountScheduleReadAsync(
+                        _dbContext, cancellationToken);
+                    await _discountResolver.ApplyToAppointmentAsync(
+                        prepared.Value.Appointment, input.DiscountOverride, actorUserId,
+                        _timeProvider.GetUtcNow(), cancellationToken);
+                }
                 Result<FollowUp?> followUpResult = await LoadFollowUpAsync(input,
                     prepared.Value.Appointment, cancellationToken);
                 if (followUpResult.IsFailure)
@@ -220,10 +240,19 @@ public sealed class AppointmentService : IAppointmentService
                     return Result.Failure<AppointmentModel>(AppointmentErrors.NotEditable);
                 }
 
-                Dictionary<long, decimal> oldPrices = appointment.Services
+                Dictionary<long, PreservedPricing> oldPricing = appointment.Services
                     .Where(item => item.Status == AppointmentServiceStatus.Scheduled)
                     .GroupBy(item => item.ServiceId).ToDictionary(group => group.Key,
-                        group => group.First().UnitPrice);
+                        group =>
+                        {
+                            Clinic.Domain.Appointments.AppointmentService item = group.First();
+                            return new PreservedPricing(item.UnitPrice, item.DiscountId,
+                                item.DiscountAmount, item.DiscountOverrideMode,
+                                item.DiscountOverrideByAdminUserId,
+                                item.DiscountOverrideReason);
+                        });
+                Dictionary<long, decimal> oldPrices = oldPricing.ToDictionary(item => item.Key,
+                    item => item.Value.UnitPrice);
                 Result<PreparedAppointment> prepared = await PrepareAsync(input, oldPrices,
                     actorUserId, appointmentId, cancellationToken);
                 if (prepared.IsFailure)
@@ -249,6 +278,31 @@ public sealed class AppointmentService : IAppointmentService
                     appointment.AddService(line.Service.Id, line.DoctorService.Id,
                         line.Service.DurationMinutes, line.Quantity, line.UnitPrice,
                         line.Devices.Select(item => (item.Id, item.DeviceId)).ToArray());
+                }
+
+                PreservedPricing? excluded = oldPricing.Values.FirstOrDefault(item =>
+                    item.OverrideMode == DiscountOverrideMode.Exclude);
+                if (excluded is not null)
+                {
+                    appointment.ExcludeDiscount(excluded.AdminUserId!.Value,
+                        excluded.Reason);
+                }
+                else
+                {
+                    foreach (Clinic.Domain.Appointments.AppointmentService line in
+                        appointment.Services.Where(item =>
+                            item.Status == AppointmentServiceStatus.Scheduled))
+                    {
+                        if (oldPricing.TryGetValue(line.ServiceId,
+                                out PreservedPricing? pricing) &&
+                            pricing.DiscountId.HasValue)
+                        {
+                            appointment.ApplyDiscount(line.SequenceNumber,
+                                pricing.DiscountId.Value, pricing.DiscountAmount,
+                                pricing.OverrideMode, pricing.AdminUserId, pricing.Reason);
+                        }
+                    }
+                    appointment.FinalizePricing();
                 }
 
                 if (prepared.Value.PatientPackage is PatientPackage patientPackage)
@@ -952,7 +1006,9 @@ public sealed class AppointmentService : IAppointmentService
             $"{item.ServiceId}:{item.DoctorId}:{item.Quantity}:" +
             string.Join(',', item.OptionalDeviceIds.Order())));
         string value = $"{actorUserId}|{input.PatientId}|{input.DepartmentId}|" +
-            $"{input.StartAt.ToUniversalTime():O}|{input.PatientPackageId}|{services}";
+            $"{input.StartAt.ToUniversalTime():O}|{input.PatientPackageId}|{services}|" +
+            $"{input.DiscountOverride?.Mode}|{input.DiscountOverride?.DiscountId}|" +
+            $"{input.DiscountOverride?.Reason?.Trim()}";
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     }
 
@@ -963,4 +1019,7 @@ public sealed class AppointmentService : IAppointmentService
     private sealed record TimeInterval(DateTimeOffset StartAt, DateTimeOffset EndAt);
     private sealed record ResourceInterval(long ResourceId, DateTimeOffset StartAt,
         DateTimeOffset EndAt);
+    private sealed record PreservedPricing(decimal UnitPrice, long? DiscountId,
+        decimal DiscountAmount, DiscountOverrideMode? OverrideMode, long? AdminUserId,
+        string? Reason);
 }

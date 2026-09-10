@@ -110,6 +110,7 @@ public sealed class Appointment : AggregateRoot
             patientPackage.Status != PatientPackageStatus.Active ||
             idempotencyKey == Guid.Empty || requestFingerprint.Length != 64 ||
             _services.Count == 0 || _services.Any(line => line.Quantity != 1 ||
+                line.DiscountAmount != 0 ||
                 !servicePrices.TryGetValue(line.ServiceId, out decimal price) || price <= 0))
         {
             throw new DomainException("الحجز لا يطابق الباقة المحددة.");
@@ -130,6 +131,66 @@ public sealed class Appointment : AggregateRoot
             Status = AppointmentStatus.Confirmed;
         }
         Recalculate();
+    }
+
+    public void ApplyDiscount(int sequenceNumber, long discountId, decimal amount,
+        DiscountOverrideMode? overrideMode = null, long? adminUserId = null,
+        string? reason = null)
+    {
+        EnsureEditable();
+        AppointmentService service = _services.SingleOrDefault(item =>
+            item.SequenceNumber == sequenceNumber &&
+            item.Status == AppointmentServiceStatus.Scheduled)
+            ?? throw new DomainException("خدمة الحجز المطلوب خصمها غير موجودة.");
+        service.ApplyDiscount(discountId, amount, overrideMode, adminUserId, reason);
+        Recalculate();
+    }
+
+    public void ExcludeDiscount(long adminUserId, string? reason)
+    {
+        EnsureEditable();
+        foreach (AppointmentService service in _services.Where(item =>
+            item.Status == AppointmentServiceStatus.Scheduled))
+        {
+            service.ExcludeDiscount(adminUserId, reason);
+        }
+        Recalculate();
+    }
+
+    public void FinalizePricing()
+    {
+        if (PatientPackageId.HasValue || _services.Count == 0)
+        {
+            return;
+        }
+
+        Recalculate();
+        if (NetAmount == 0)
+        {
+            PaymentStatus = PaymentStatus.NotRequired;
+            if (Status == AppointmentStatus.Booked)
+            {
+                Status = AppointmentStatus.Confirmed;
+            }
+            else if (Status == AppointmentStatus.Suspended &&
+                StatusBeforeSuspension == AppointmentStatus.Booked)
+            {
+                StatusBeforeSuspension = AppointmentStatus.Confirmed;
+            }
+        }
+        else if (PaymentStatus == PaymentStatus.NotRequired)
+        {
+            PaymentStatus = PaymentStatus.Unpaid;
+            if (Status == AppointmentStatus.Confirmed)
+            {
+                Status = AppointmentStatus.Booked;
+            }
+            else if (Status == AppointmentStatus.Suspended &&
+                StatusBeforeSuspension == AppointmentStatus.Confirmed)
+            {
+                StatusBeforeSuspension = AppointmentStatus.Booked;
+            }
+        }
     }
 
     public void ReplaceSchedule(DateTimeOffset startAt, long updatedByUserId,
@@ -341,7 +402,7 @@ public sealed class Appointment : AggregateRoot
     private void EnsureEditable()
     {
         if (PaymentStatus is not PaymentStatus.Unpaid and
-                not PaymentStatus.CoveredByPackage ||
+                not PaymentStatus.CoveredByPackage and not PaymentStatus.NotRequired ||
             Status is AppointmentStatus.Cancelled or AppointmentStatus.Completed or AppointmentStatus.NoShow)
         {
             throw new DomainException("لا يمكن تعديل هذا الحجز.");

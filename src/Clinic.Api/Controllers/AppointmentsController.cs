@@ -91,10 +91,12 @@ public sealed class AppointmentsController : ControllerBase
     internal static AppointmentInput Map(long patientId, long departmentId,
         DateTimeOffset startAt, IReadOnlyCollection<AppointmentLineRequest> services,
         FollowUpBookingRequest? followUp = null, long? patientPackageId = null,
-        Guid? idempotencyKey = null) =>
+        Guid? idempotencyKey = null, DiscountOverrideRequest? discountOverride = null) =>
         new(patientId, departmentId, startAt, services.Select(item =>
             new AppointmentLineInput(item.ServiceId, item.DoctorId, item.Quantity,
                 item.OptionalDeviceIds ?? [])).ToArray(), followUp is null ? null
                     : new FollowUpBookingInput(followUp.FollowUpId, followUp.RowVersion),
-            patientPackageId, idempotencyKey);
+            patientPackageId, idempotencyKey, discountOverride is null ? null :
+                new DiscountOverrideInput(discountOverride.Mode,
+                    discountOverride.DiscountId, discountOverride.Reason));
 }

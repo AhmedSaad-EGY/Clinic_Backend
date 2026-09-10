@@ -129,6 +129,11 @@ public static class ControllerResultExtensions
         "patient_packages.definition_unavailable" => StatusCodes.Status409Conflict,
         "patient_packages.definition_incomplete" => StatusCodes.Status409Conflict,
         "patient_packages.idempotency_conflict" => StatusCodes.Status409Conflict,
+        "discounts.not_authenticated" => StatusCodes.Status401Unauthorized,
+        "discounts.not_found" => StatusCodes.Status404NotFound,
+        "discounts.target_not_found" => StatusCodes.Status404NotFound,
+        "discounts.overlap" => StatusCodes.Status409Conflict,
+        "discounts.concurrency_conflict" => StatusCodes.Status409Conflict,
         _ => StatusCodes.Status400BadRequest
     };
 }

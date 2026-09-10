@@ -6,6 +6,7 @@ using Clinic.Application.Features.Catalog.Queries;
 using Clinic.Application.Features.Catalog.Services;
 using Clinic.Application.Features.Catalog.Specializations;
 using Clinic.Application.Features.ClinicalRecords;
+using Clinic.Application.Features.Discounts;
 using Clinic.Application.Features.Identity.Authentication;
 using Clinic.Application.Features.Identity.Secretaries;
 using Clinic.Application.Features.Patients;
@@ -146,6 +147,12 @@ public static class DependencyInjection
         services.AddScoped<ListPackageSessionsQueryHandler>();
         services.AddScoped<GetPackageBookingOptionsQueryHandler>();
         services.AddScoped<SearchAdminPatientPackagesQueryHandler>();
+        services.AddScoped<CreateDiscountCommandHandler>();
+        services.AddScoped<UpdateDiscountCommandHandler>();
+        services.AddScoped<SetDiscountActivationCommandHandler>();
+        services.AddScoped<ArchiveDiscountCommandHandler>();
+        services.AddScoped<GetDiscountQueryHandler>();
+        services.AddScoped<SearchDiscountsQueryHandler>();
 
         return services;
     }

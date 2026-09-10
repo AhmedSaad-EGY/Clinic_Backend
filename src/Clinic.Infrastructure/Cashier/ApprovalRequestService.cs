@@ -74,7 +74,8 @@ public sealed class ApprovalRequestService(
                 if (appointment.PaymentStatus == PaymentStatus.Paid && payment is null ||
                     appointment.PaymentStatus != PaymentStatus.Paid &&
                     appointment.PaymentStatus != PaymentStatus.Unpaid &&
-                    appointment.PaymentStatus != PaymentStatus.CoveredByPackage)
+                    appointment.PaymentStatus != PaymentStatus.CoveredByPackage &&
+                    appointment.PaymentStatus != PaymentStatus.NotRequired)
                 {
                     return Result.Failure<ApprovalRequestModel>(CashierErrors.Conflict(
                         "الحالة المالية للحجز لا تسمح بطلب الإلغاء."));
@@ -266,7 +267,7 @@ public sealed class ApprovalRequestService(
         if (!request.OriginalPaymentId.HasValue)
         {
             return appointment.PaymentStatus is PaymentStatus.Unpaid or
-                PaymentStatus.CoveredByPackage;
+                PaymentStatus.CoveredByPackage or PaymentStatus.NotRequired;
         }
 
         if (appointment.PaymentStatus != PaymentStatus.Paid)

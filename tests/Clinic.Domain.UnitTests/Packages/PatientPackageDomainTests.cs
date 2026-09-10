@@ -4,6 +4,7 @@ using Clinic.Domain.Common;
 using Clinic.Domain.Appointments;
 using Clinic.Domain.Packages;
 using Clinic.Domain.Patients;
+using Clinic.Domain.Discounts;
 
 namespace Clinic.Domain.UnitTests.Packages;
 
@@ -41,6 +42,24 @@ public sealed class PatientPackageDomainTests
         Assert.Null(purchase.ActivationDeadlineAt);
         Assert.Null(purchase.FirstUsedAt);
         Assert.Null(purchase.ExpiresAt);
+    }
+
+    [Fact]
+    public void DiscountIsSnapshottedAndCanMakePackageFree()
+    {
+        (Patient patient, Package package) = CreateGraph(500m, 2);
+        Discount discount = Discount.Create("خصم كامل", DiscountType.Percentage, 100m,
+            DiscountAppliesTo.Packages, DiscountScopeMode.All, Now.AddDays(-1),
+            Now.AddDays(1), [], [], [], 7, Now);
+        Set(discount, nameof(discount.Id), 8L);
+
+        PatientPackage purchase = PatientPackage.Register(patient, package, Guid.NewGuid(),
+            new string('Z', 64), 7, Now, discount);
+
+        Assert.Equal(8, purchase.DiscountId);
+        Assert.Equal(500m, purchase.DiscountAmountSnapshot);
+        Assert.Equal(0m, purchase.NetPriceSnapshot);
+        Assert.Equal(PatientPackagePaymentStatus.NotRequired, purchase.PaymentStatus);
     }
 
     [Fact]

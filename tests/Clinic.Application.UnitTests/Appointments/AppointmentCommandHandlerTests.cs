@@ -38,6 +38,27 @@ public sealed class AppointmentCommandHandlerTests
         Assert.False(service.WasCalled);
     }
 
+    [Fact]
+    public async Task CreateRejectsDuplicateServiceLines()
+    {
+        FakeAppointmentService service = new();
+        CreateAppointmentCommandHandler handler = new(new FakeCurrentUser(1), service);
+        AppointmentInput input = ValidInput() with
+        {
+            Services =
+            [
+                new AppointmentLineInput(3, 4, 1, []),
+                new AppointmentLineInput(3, 4, 2, [])
+            ]
+        };
+
+        Result<AppointmentModel> result = await handler.Handle(
+            new CreateAppointmentCommand(input), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.False(service.WasCalled);
+    }
+
     private static AppointmentInput ValidInput() => new(1, 2,
         new DateTimeOffset(2027, 1, 1, 10, 0, 0, TimeSpan.Zero),
         [new AppointmentLineInput(3, 4, 1, [])]);

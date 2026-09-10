@@ -3,8 +3,10 @@ using System.Text;
 using Clinic.Application.Abstractions.Packages;
 using Clinic.Application.Common;
 using Clinic.Domain.Common;
+using Clinic.Domain.Discounts;
 using Clinic.Domain.Packages;
 using Clinic.Domain.Patients;
+using Clinic.Infrastructure.Discounts;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -15,11 +17,14 @@ public sealed class PatientPackageCommandService : IPatientPackageCommandService
 {
     private readonly ClinicDbContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly DiscountResolver _discountResolver;
 
-    public PatientPackageCommandService(ClinicDbContext dbContext, TimeProvider timeProvider)
+    public PatientPackageCommandService(ClinicDbContext dbContext, TimeProvider timeProvider,
+        DiscountResolver discountResolver)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _discountResolver = discountResolver;
     }
 
     public Task<Result<PatientPackageRegistrationResult>> RegisterAsync(long actorUserId,
@@ -107,6 +112,8 @@ public sealed class PatientPackageCommandService : IPatientPackageCommandService
             await TransactionalResourceLock.AcquireServiceAsync(_dbContext, serviceId,
                 cancellationToken);
         }
+        await TransactionalResourceLock.AcquireDiscountScheduleReadAsync(_dbContext,
+            cancellationToken);
 
         DateTimeOffset now = _timeProvider.GetUtcNow();
         bool unavailable = package.Services.Where(item => item.IsActive).Any(item =>
@@ -119,8 +126,10 @@ public sealed class PatientPackageCommandService : IPatientPackageCommandService
                 PackageErrors.DefinitionUnavailable);
         }
 
+        Discount? discount = await _discountResolver.ResolveForPackageAsync(
+            departmentId.Value, packageId, now, cancellationToken);
         PatientPackage patientPackage = PatientPackage.Register(patient, package,
-            idempotencyKey, fingerprint, actorUserId, now);
+            idempotencyKey, fingerprint, actorUserId, now, discount);
         _dbContext.PatientPackages.Add(patientPackage);
         await _dbContext.SaveChangesAsync(cancellationToken);
         PatientPackageInfrastructureSupport.AddAudit(_dbContext, actorUserId,

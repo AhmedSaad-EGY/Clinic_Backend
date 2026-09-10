@@ -97,10 +97,22 @@ internal static class TransactionalResourceLock
         CancellationToken cancellationToken) =>
         AcquireAsync(dbContext, $"clinic:device:{deviceId}", cancellationToken);
 
+    public static Task AcquireDiscountScheduleReadAsync(ClinicDbContext dbContext,
+        CancellationToken cancellationToken) =>
+        AcquireAsync(dbContext, "clinic:discount-schedule", "Shared", cancellationToken);
+
+    public static Task AcquireDiscountScheduleWriteAsync(ClinicDbContext dbContext,
+        CancellationToken cancellationToken) =>
+        AcquireAsync(dbContext, "clinic:discount-schedule", "Exclusive", cancellationToken);
+
     private static async Task AcquireAsync(
         ClinicDbContext dbContext,
         string resource,
         CancellationToken cancellationToken)
+        => await AcquireAsync(dbContext, resource, "Exclusive", cancellationToken);
+
+    private static async Task AcquireAsync(ClinicDbContext dbContext, string resource,
+        string mode, CancellationToken cancellationToken)
     {
         try
         {
@@ -108,7 +120,7 @@ internal static class TransactionalResourceLock
                 DECLARE @lockResult int;
                 EXEC @lockResult = sys.sp_getapplock
                     @Resource = {resource},
-                    @LockMode = 'Exclusive',
+                    @LockMode = {mode},
                     @LockOwner = 'Transaction',
                     @LockTimeout = 10000;
                 IF @lockResult < 0

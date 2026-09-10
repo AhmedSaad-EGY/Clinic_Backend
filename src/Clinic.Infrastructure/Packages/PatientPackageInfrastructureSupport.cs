@@ -49,7 +49,9 @@ internal static class PatientPackageInfrastructureSupport
                     item.ServiceNameSnapshot, item.SpecializationIdSnapshot,
                     item.SpecializationNameSnapshot, item.SessionsPurchased,
                     item.UnitPriceSnapshot)).ToArray(),
-            Convert.ToBase64String(patientPackage.RowVersion));
+            Convert.ToBase64String(patientPackage.RowVersion), DiscountId:
+                patientPackage.DiscountId, DiscountAmount:
+                patientPackage.DiscountAmountSnapshot);
     }
 
     public static PackageSessionModel Map(PackageSession session) => new(session.Id,

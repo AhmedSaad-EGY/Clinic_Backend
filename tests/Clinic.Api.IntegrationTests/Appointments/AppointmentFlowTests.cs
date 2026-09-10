@@ -5,6 +5,7 @@ using Clinic.Domain.Appointments;
 using Clinic.Domain.Catalog;
 using Clinic.Domain.Patients;
 using Clinic.Domain.Scheduling;
+using Clinic.Domain.Discounts;
 using Clinic.Infrastructure.Identity;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -27,13 +28,45 @@ public sealed class AppointmentFlowTests : IClassFixture<IdentitySqlServerFixtur
         await LoginAndChangePasswordAsync(admin);
         SeedData data = await SeedAsync();
 
+        DateTimeOffset discountStart = DateTimeOffset.UtcNow.AddHours(-1);
+        DiscountResponse discount = await PostAndReadAsync<CreateDiscountRequest,
+            DiscountResponse>(admin, "/api/admin/discounts", new CreateDiscountRequest(
+                "خصم حجز اختباري", DiscountType.Percentage, 10m,
+                DiscountAppliesTo.Bookings, DiscountScopeMode.Selected, discountStart,
+                discountStart.AddDays(1), new([], [data.ServiceId], [])));
+        using HttpResponseMessage overlap = await PostAsync(admin, "/api/admin/discounts",
+            new CreateDiscountRequest("خصم متداخل", DiscountType.FixedAmount, 10m,
+                DiscountAppliesTo.Bookings, DiscountScopeMode.Selected, discountStart,
+                discountStart.AddDays(1), new([data.DepartmentId], [], [])));
+        Assert.Equal(HttpStatusCode.Conflict, overlap.StatusCode);
+
         CreateAppointmentRequest request = new(data.PatientId, data.DepartmentId,
             data.StartAt, [new(data.ServiceId, data.DoctorId, 1, [])]);
         AppointmentResponse created = await PostAndReadAsync<CreateAppointmentRequest,
             AppointmentResponse>(admin, "/api/appointments", request);
         Assert.Equal(AppointmentStatus.Booked, created.Status);
-        Assert.Equal(300m, created.NetAmount);
+        Assert.Equal(30m, created.DiscountAmount);
+        Assert.Equal(270m, created.NetAmount);
+        Assert.Equal(discount.Id, created.Services.Single().DiscountId);
         Assert.Equal(data.StartAt.AddMinutes(30), created.EndAt);
+
+        AppointmentResponse excluded = await PostAndReadAsync<AdminCreateAppointmentRequest,
+            AppointmentResponse>(admin, "/api/admin/appointments",
+                new(data.PatientId, data.DepartmentId, data.StartAt.AddHours(5),
+                    request.Services, new(DiscountOverrideMode.Exclude, null, null)));
+        Assert.Equal(0m, excluded.DiscountAmount);
+        Assert.Null(excluded.Services.Single().DiscountId);
+        Assert.Equal(DiscountOverrideMode.Exclude,
+            excluded.Services.Single().DiscountOverrideMode);
+
+        AppointmentResponse forced = await PostAndReadAsync<AdminCreateAppointmentRequest,
+            AppointmentResponse>(admin, "/api/admin/appointments",
+                new(data.PatientId, data.DepartmentId, data.StartAt.AddHours(6),
+                    request.Services, new(DiscountOverrideMode.Force, discount.Id,
+                        "اختيار خصم معتمد")));
+        Assert.Equal(30m, forced.DiscountAmount);
+        Assert.Equal(DiscountOverrideMode.Force,
+            forced.Services.Single().DiscountOverrideMode);
 
         _ = await PostAndReadAsync<CreateAppointmentRequest, AppointmentResponse>(admin,
             "/api/appointments", request with { StartAt = data.StartAt.AddMinutes(-30) });
@@ -147,8 +180,23 @@ public sealed class AppointmentFlowTests : IClassFixture<IdentitySqlServerFixtur
             new ChangeStateRequest(updated.RowVersion, null));
         Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
 
+        using HttpResponseMessage archivedDiscount = await PostAsync(admin,
+            $"/api/admin/discounts/{discount.Id}/archive",
+            new ArchiveDiscountRequest(discount.RowVersion));
+        Assert.Equal(HttpStatusCode.NoContent, archivedDiscount.StatusCode);
+        AppointmentResponse preservedDiscount = await admin.GetFromJsonAsync<AppointmentResponse>(
+            $"/api/appointments/{forced.Id}") ?? throw new InvalidOperationException();
+        Assert.Equal(30m, preservedDiscount.DiscountAmount);
+        Assert.Equal(discount.Id, preservedDiscount.Services.Single().DiscountId);
+
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         ClinicDbContext dbContext = scope.ServiceProvider.GetRequiredService<ClinicDbContext>();
+        await Assert.ThrowsAsync<SqlException>(() => dbContext.Database
+            .ExecuteSqlInterpolatedAsync($"""
+                UPDATE [appointments].[AppointmentServices]
+                SET [DiscountAmount] = {301m}, [NetAmount] = {-1m}
+                WHERE [AppointmentId] = {created.Id} AND [Status] = {(int)AppointmentServiceStatus.Scheduled}
+                """));
         Assert.True(await dbContext.AuditLogs.AnyAsync(item =>
             item.Action == "appointments.created"));
         Assert.Equal([300m, 500m], await dbContext.AppointmentServices
@@ -309,9 +357,12 @@ public sealed class AppointmentFlowTests : IClassFixture<IdentitySqlServerFixtur
     private sealed record AppointmentLineRequest(long ServiceId, long DoctorId, int Quantity,
         IReadOnlyCollection<long> OptionalDeviceIds);
     private sealed record AppointmentResponse(long Id, AppointmentStatus Status,
-        DateTimeOffset StartAt, DateTimeOffset EndAt, decimal NetAmount, string RowVersion,
+        DateTimeOffset StartAt, DateTimeOffset EndAt, decimal DiscountAmount,
+        decimal NetAmount, string RowVersion,
         IReadOnlyCollection<AppointmentServiceResponse> Services);
-    private sealed record AppointmentServiceResponse(long Id, long ServiceId);
+    private sealed record AppointmentServiceResponse(long Id, long ServiceId,
+        long? DiscountId, decimal DiscountAmount,
+        DiscountOverrideMode? DiscountOverrideMode);
     private sealed record AppointmentPageResponse(IReadOnlyCollection<AppointmentResponse> Items);
     private sealed record CheckAppointmentAvailabilityRequest(long PatientId, long DepartmentId,
         DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
@@ -334,4 +385,16 @@ public sealed class AppointmentFlowTests : IClassFixture<IdentitySqlServerFixtur
     private sealed record CsrfResponse(string Token);
     private sealed record LoginRequest(string UserName, string Password);
     private sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+    private sealed record DiscountTargetsRequest(IReadOnlyCollection<long> DepartmentIds,
+        IReadOnlyCollection<long> ServiceIds, IReadOnlyCollection<long> PackageIds);
+    private sealed record CreateDiscountRequest(string Name, DiscountType Type, decimal Value,
+        DiscountAppliesTo AppliesTo, DiscountScopeMode ScopeMode,
+        DateTimeOffset StartAt, DateTimeOffset EndAt, DiscountTargetsRequest Targets);
+    private sealed record DiscountResponse(long Id, string RowVersion);
+    private sealed record ArchiveDiscountRequest(string RowVersion);
+    private sealed record DiscountOverrideRequest(DiscountOverrideMode Mode,
+        long? DiscountId, string? Reason);
+    private sealed record AdminCreateAppointmentRequest(long PatientId, long DepartmentId,
+        DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
+        DiscountOverrideRequest DiscountOverride);
 }
