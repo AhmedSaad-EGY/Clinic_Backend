@@ -111,6 +111,8 @@ public sealed class ClinicDbContext
     public DbSet<RefundAppointmentAllocation> RefundAppointmentAllocations =>
         Set<RefundAppointmentAllocation>();
 
+    public DbSet<CashWithdrawal> CashWithdrawals => Set<CashWithdrawal>();
+
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
 
     public DbSet<PrescriptionRevision> PrescriptionRevisions =>
@@ -135,6 +137,10 @@ public sealed class ClinicDbContext
             .IncrementsBy(1);
 
         builder.HasSequence<long>("RefundTransactionNumberSequence", "cashier")
+            .StartsAt(1)
+            .IncrementsBy(1);
+
+        builder.HasSequence<long>("CashWithdrawalNumberSequence", "cashier")
             .StartsAt(1)
             .IncrementsBy(1);
 

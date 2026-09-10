@@ -300,19 +300,9 @@ public sealed class RefundService(ClinicDbContext dbContext, TimeProvider timePr
         .SingleOrDefaultAsync(cancellationToken);
 
     private async Task<decimal> ExpectedCashAsync(Shift shift,
-        CancellationToken cancellationToken)
-    {
-        decimal collections = await dbContext.PaymentMethodAllocations.AsNoTracking()
-            .Where(item => item.Payment.ShiftId == shift.Id &&
-                item.PaymentMethod.IsCash)
-            .SumAsync(item => (decimal?)item.Amount, cancellationToken) ?? 0;
-        decimal refunds = await dbContext.RefundMethodAllocations.AsNoTracking()
-            .Where(item => item.Refund.ExecutionShiftId == shift.Id &&
-                item.Refund.Status == RefundStatus.Posted &&
-                item.OriginalAllocation.PaymentMethod.IsCash)
-            .SumAsync(item => (decimal?)item.Amount, cancellationToken) ?? 0;
-        return (shift.OpeningBalance ?? 0) + collections - refunds;
-    }
+        CancellationToken cancellationToken) =>
+        await CashierInfrastructureSupport.ExpectedCashAsync(dbContext,
+            shift.Id, shift.OpeningBalance, cancellationToken);
 
     private Task<bool> CanAccessShiftAsync(long actorUserId, long shiftId,
         bool adminOverride, CancellationToken cancellationToken) => adminOverride

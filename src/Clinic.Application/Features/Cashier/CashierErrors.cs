@@ -23,6 +23,8 @@ public static class CashierErrors
         "cashier.approval_request_not_found", "طلب الموافقة غير موجود.");
     public static readonly ResultError RefundNotFound = new(
         "cashier.refund_not_found", "عملية الاسترداد غير موجودة.");
+    public static readonly ResultError CashWithdrawalNotFound = new(
+        "cashier.cash_withdrawal_not_found", "طلب السحب النقدي غير موجود.");
     public static readonly ResultError AppointmentNotPayable = new(
         "cashier.appointment_not_payable",
         "أحد الحجوزات غير قابل للتحصيل أو تم دفعه بالفعل.");

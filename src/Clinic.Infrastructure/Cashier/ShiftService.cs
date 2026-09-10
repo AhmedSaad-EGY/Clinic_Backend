@@ -293,6 +293,15 @@ public sealed class ShiftService(ClinicDbContext dbContext, TimeProvider timePro
         return await MutateOwnedShiftAsync(actorUserId, shiftId, rowVersion,
             adminOverride, reason, async (shift, now, token) =>
             {
+                if (await dbContext.CashWithdrawals.AsNoTracking().AnyAsync(item =>
+                    item.ShiftId == shift.Id &&
+                    (item.Status == CashWithdrawalStatus.Pending ||
+                     item.Status == CashWithdrawalStatus.Approved), token))
+                {
+                    throw new DomainException(
+                        "يجب حسم طلبات السحب المعلقة قبل إغلاق الشيفت.");
+                }
+
                 decimal expectedCash = await ExpectedCashAsync(shift, token);
                 if (shift.ExpectedCash != expectedCash)
                 {
@@ -555,19 +564,9 @@ public sealed class ShiftService(ClinicDbContext dbContext, TimeProvider timePro
     }
 
     private async Task<decimal> ExpectedCashAsync(Shift shift,
-        CancellationToken cancellationToken)
-    {
-        decimal cashCollections = await dbContext.PaymentMethodAllocations
-            .Where(item => item.Payment.ShiftId == shift.Id &&
-                item.PaymentMethod.IsCash)
-            .SumAsync(item => (decimal?)item.Amount, cancellationToken) ?? 0;
-        decimal cashRefunds = await dbContext.RefundMethodAllocations
-            .Where(item => item.Refund.ExecutionShiftId == shift.Id &&
-                item.Refund.Status == RefundStatus.Posted &&
-                item.OriginalAllocation.PaymentMethod.IsCash)
-            .SumAsync(item => (decimal?)item.Amount, cancellationToken) ?? 0;
-        return (shift.OpeningBalance ?? 0) + cashCollections - cashRefunds;
-    }
+        CancellationToken cancellationToken) =>
+        await CashierInfrastructureSupport.ExpectedCashAsync(dbContext,
+            shift.Id, shift.OpeningBalance, cancellationToken);
 
     private IQueryable<ShiftDetails> ShiftDetailsQuery() =>
         from shift in dbContext.Shifts.AsNoTracking()

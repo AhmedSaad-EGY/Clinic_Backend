@@ -36,6 +36,10 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(auditLog => auditLog.DataJson).HasColumnType("nvarchar(max)");
 
         builder.HasIndex(auditLog => auditLog.OccurredAt);
+        builder.HasIndex(auditLog => new { auditLog.ActorUserId, auditLog.OccurredAt })
+            .HasDatabaseName("IX_AuditLogs_Actor_OccurredAt");
+        builder.HasIndex(auditLog => new { auditLog.Action, auditLog.OccurredAt })
+            .HasDatabaseName("IX_AuditLogs_Action_OccurredAt");
         builder.HasIndex(auditLog => new { auditLog.EntityType, auditLog.EntityId });
 
         builder.HasOne<ApplicationUser>()

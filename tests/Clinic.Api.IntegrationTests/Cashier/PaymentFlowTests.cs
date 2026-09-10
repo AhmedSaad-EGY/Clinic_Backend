@@ -68,6 +68,15 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
                 new TimeOnly(10, 0), new TimeOnly(14, 0)))).Items);
         SeededPaymentTargets seeded = await SeedPaymentTargetsAsync(clinicDate, start);
         long[] appointmentIds = seeded.AppointmentIds;
+        ReportingComparisonResponse unpaidComparison = await GetAsync<
+            ReportingComparisonResponse>(admin,
+            "/api/admin/reports/comparison?from=2026-09-27&to=2026-09-27" +
+            "&groupBy=3");
+        ReportingComparisonPoint unpaidDepartment = Assert.Single(
+            unpaidComparison.Points, item => item.Key == seeded.DepartmentId.ToString(
+                System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Equal(2, unpaidDepartment.AppointmentCount);
+        Assert.Equal(0, unpaidDepartment.Net);
 
         using HttpClient cashier = _fixture.CreateClient();
         await LoginAndChangePasswordAsync(cashier, secretary.UserName,
@@ -128,6 +137,14 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
             StringComparison.Ordinal);
         Assert.Equal(500m, payment.TotalAmount);
         Assert.Equal(2, payment.AppointmentAllocations.Count);
+        ReportingFinancialResponse financialReport = await GetAsync<
+            ReportingFinancialResponse>(admin,
+            "/api/admin/reports/financial?from=2026-09-27&to=2026-09-27" +
+            $"&departmentId={seeded.DepartmentId}");
+        Assert.Equal(financialReport.Collected,
+            financialReport.PaymentMethods.Sum(item => item.Collected));
+        Assert.Equal(financialReport.Collected,
+            financialReport.Departments.Sum(item => item.Collected));
 
         PostPaymentRequest packageRequest = new([], [new(1, 400m, null)],
             "تحصيل باقة", [seeded.PatientPackageId]);
@@ -787,6 +804,14 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         decimal? DeclaredCash, decimal? CashVariance, ShiftStatus Status,
         string RowVersion);
     private sealed record PaymentMethodResponse(string Code);
+    private sealed record ReportingComparisonResponse(
+        IReadOnlyCollection<ReportingComparisonPoint> Points);
+    private sealed record ReportingComparisonPoint(string Key, decimal Net,
+        int AppointmentCount);
+    private sealed record ReportingFinancialResponse(decimal Collected,
+        IReadOnlyCollection<ReportingBreakdown> Departments,
+        IReadOnlyCollection<ReportingBreakdown> PaymentMethods);
+    private sealed record ReportingBreakdown(decimal Collected);
     private sealed record PaymentMethodAllocationRequest(long PaymentMethodId,
         decimal Amount, string? ReferenceNumber);
     private sealed record PostPaymentRequest(IReadOnlyCollection<long> AppointmentIds,

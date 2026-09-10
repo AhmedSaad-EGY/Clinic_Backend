@@ -11,6 +11,7 @@ using Clinic.Application.Features.Identity.Authentication;
 using Clinic.Application.Features.Identity.Secretaries;
 using Clinic.Application.Features.Patients;
 using Clinic.Application.Features.Packages;
+using Clinic.Application.Features.Reporting;
 using Clinic.Application.Features.Scheduling.Closures;
 using Clinic.Application.Features.Scheduling.Doctors;
 using Clinic.Application.Features.Scheduling.Exceptions;
@@ -120,6 +121,14 @@ public static class DependencyInjection
         services.AddScoped<ExecuteRefundCommandHandler>();
         services.AddScoped<GetRefundQueryHandler>();
         services.AddScoped<ListShiftRefundsQueryHandler>();
+        services.AddScoped<CreateCashWithdrawalCommandHandler>();
+        services.AddScoped<ApproveCashWithdrawalCommandHandler>();
+        services.AddScoped<RejectCashWithdrawalCommandHandler>();
+        services.AddScoped<CancelCashWithdrawalCommandHandler>();
+        services.AddScoped<ExecuteCashWithdrawalCommandHandler>();
+        services.AddScoped<GetCashWithdrawalQueryHandler>();
+        services.AddScoped<ListShiftCashWithdrawalsQueryHandler>();
+        services.AddScoped<SearchCashWithdrawalsQueryHandler>();
         services.AddScoped<CreatePrescriptionDraftCommandHandler>();
         services.AddScoped<SavePrescriptionDraftCommandHandler>();
         services.AddScoped<FinalizePrescriptionCommandHandler>();
@@ -153,6 +162,12 @@ public static class DependencyInjection
         services.AddScoped<ArchiveDiscountCommandHandler>();
         services.AddScoped<GetDiscountQueryHandler>();
         services.AddScoped<SearchDiscountsQueryHandler>();
+        services.AddScoped<GetAdminDashboardQueryHandler>();
+        services.AddScoped<GetFinancialReportQueryHandler>();
+        services.AddScoped<GetOperationalReportQueryHandler>();
+        services.AddScoped<GetComparisonReportQueryHandler>();
+        services.AddScoped<GetShiftReportQueryHandler>();
+        services.AddScoped<GetAuditLogsQueryHandler>();
 
         return services;
     }

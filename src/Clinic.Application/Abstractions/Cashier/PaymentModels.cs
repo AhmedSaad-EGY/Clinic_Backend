@@ -51,9 +51,11 @@ public sealed record PaymentMethodTotalModel(long PaymentMethodId, string Code,
 
 public sealed record ShiftCollectionSummaryModel(long ShiftId, decimal? OpeningBalance,
     decimal CashCollected, decimal CashRefunded, decimal CashNet,
+    decimal CashWithdrawn,
     decimal ElectronicCollected, decimal ElectronicRefunded, decimal ElectronicNet,
     decimal TotalCollected, decimal TotalRefunded, decimal NetTotal,
     decimal? CurrentExpectedCash, decimal? ReconciledExpectedCash,
     bool IsReconciliationStale, bool IsExpectedCashNegative, int PaymentCount,
-    int RefundCount,
+    int RefundCount, int ExecutedWithdrawalCount, int PendingWithdrawalCount,
+    int ApprovedWithdrawalCount,
     IReadOnlyCollection<PaymentMethodTotalModel> MethodTotals);

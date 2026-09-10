@@ -33,6 +33,8 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasDatabaseName("IX_Payments_Shift_CollectedAt");
         builder.HasIndex(item => new { item.PatientId, item.CollectedAt })
             .HasDatabaseName("IX_Payments_Patient_CollectedAt");
+        builder.HasIndex(item => new { item.CollectedAt, item.CollectedByUserId })
+            .HasDatabaseName("IX_Payments_CollectedAt_Collector");
 
         builder.HasOne(item => item.Shift).WithMany()
             .HasForeignKey(item => item.ShiftId).OnDelete(DeleteBehavior.Restrict);

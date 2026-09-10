@@ -50,6 +50,8 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
             .HasDatabaseName("IX_Appointments_Patient_StartAt");
         builder.HasIndex(item => new { item.Status, item.StartAt })
             .HasDatabaseName("IX_Appointments_Status_StartAt");
+        builder.HasIndex(item => item.StartAt)
+            .HasDatabaseName("IX_Appointments_StartAt");
         builder.HasIndex(item => item.IdempotencyKey).IsUnique()
             .HasFilter("[IdempotencyKey] IS NOT NULL")
             .HasDatabaseName("UX_Appointments_Package_IdempotencyKey");

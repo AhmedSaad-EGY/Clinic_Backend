@@ -362,21 +362,36 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
         decimal electronic = methodTotals.Where(item => !item.IsCash).Sum(item => item.Amount);
         decimal electronicRefunded = methodTotals.Where(item => !item.IsCash)
             .Sum(item => item.RefundedAmount);
+        decimal cashWithdrawn = await dbContext.CashWithdrawals.AsNoTracking()
+            .Where(item => item.ShiftId == shiftId &&
+                item.Status == CashWithdrawalStatus.Executed)
+            .SumAsync(item => (decimal?)item.Amount, cancellationToken) ?? 0;
         decimal? expected = shift.OpeningBalance.HasValue
-            ? shift.OpeningBalance.Value + cash - cashRefunded
+            ? CashierInfrastructureSupport.CalculateExpectedCash(
+                shift.OpeningBalance, cash, cashRefunded, cashWithdrawn)
             : null;
         int paymentCount = await dbContext.Payments.AsNoTracking()
             .CountAsync(item => item.ShiftId == shiftId, cancellationToken);
         int refundCount = await dbContext.Refunds.AsNoTracking()
             .CountAsync(item => item.ExecutionShiftId == shiftId &&
                 item.Status == RefundStatus.Posted, cancellationToken);
+        Dictionary<CashWithdrawalStatus, int> withdrawalCounts = await dbContext
+            .CashWithdrawals.AsNoTracking().Where(item => item.ShiftId == shiftId)
+            .GroupBy(item => item.Status)
+            .ToDictionaryAsync(group => group.Key, group => group.Count(),
+                cancellationToken);
         return Result.Success(new ShiftCollectionSummaryModel(shift.Id,
             shift.OpeningBalance, cash, cashRefunded, cash - cashRefunded,
-            electronic, electronicRefunded, electronic - electronicRefunded,
+            cashWithdrawn, electronic, electronicRefunded,
+            electronic - electronicRefunded,
             cash + electronic, cashRefunded + electronicRefunded,
             cash + electronic - cashRefunded - electronicRefunded, expected,
             shift.ExpectedCash, shift.ExpectedCash.HasValue && shift.ExpectedCash != expected,
-            expected < 0, paymentCount, refundCount, methodTotals));
+            expected < 0, paymentCount, refundCount,
+            withdrawalCounts.GetValueOrDefault(CashWithdrawalStatus.Executed),
+            withdrawalCounts.GetValueOrDefault(CashWithdrawalStatus.Pending),
+            withdrawalCounts.GetValueOrDefault(CashWithdrawalStatus.Approved),
+            methodTotals));
     }
 
     private async Task<Result<PostedPaymentModel>> ReplayAsync(Payment payment,

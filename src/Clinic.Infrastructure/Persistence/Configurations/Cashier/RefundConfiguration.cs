@@ -34,6 +34,9 @@ public sealed class RefundConfiguration : IEntityTypeConfiguration<Refund>
             .HasDatabaseName("UX_Refunds_ApprovalRequestId");
         builder.HasIndex(item => new { item.ExecutionShiftId, item.ExecutedAt })
             .HasDatabaseName("IX_Refunds_Shift_ExecutedAt");
+        builder.HasIndex(item => new
+            { item.Status, item.ExecutedAt, item.ExecutedByUserId })
+            .HasDatabaseName("IX_Refunds_Status_ExecutedAt_Executor");
 
         builder.HasOne<ApprovalRequest>().WithMany()
             .HasForeignKey(item => item.ApprovalRequestId)

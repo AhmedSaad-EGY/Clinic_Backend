@@ -184,6 +184,17 @@ public sealed class Shift : AggregateRoot
         ClearReconciliation();
     }
 
+    public void RegisterCashWithdrawal(DateTimeOffset executedAt)
+    {
+        if (!CanCollect(executedAt))
+        {
+            throw new DomainException("لا يمكن تنفيذ سحب نقدي في هذا الشيفت الآن.");
+        }
+
+        OpenForInteraction(executedAt);
+        ClearReconciliation();
+    }
+
     public void Close(decimal currentExpectedCash, long actorUserId,
         DateTimeOffset closedAt, bool allowEarlyClose, string? note)
     {

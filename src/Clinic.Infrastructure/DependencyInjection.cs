@@ -7,6 +7,7 @@ using Clinic.Application.Abstractions.Identity;
 using Clinic.Application.Abstractions.Patients;
 using Clinic.Application.Abstractions.Packages;
 using Clinic.Application.Abstractions.Persistence;
+using Clinic.Application.Abstractions.Reporting;
 using Clinic.Application.Abstractions.Scheduling;
 using Clinic.Infrastructure.Appointments;
 using Clinic.Infrastructure.Cashier;
@@ -17,6 +18,7 @@ using Clinic.Infrastructure.Identity;
 using Clinic.Infrastructure.Patients;
 using Clinic.Infrastructure.Packages;
 using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Reporting;
 using Clinic.Infrastructure.Scheduling;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -98,6 +100,7 @@ public static class DependencyInjection
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IApprovalRequestService, ApprovalRequestService>();
         services.AddScoped<IRefundService, RefundService>();
+        services.AddScoped<ICashWithdrawalService, CashWithdrawalService>();
         services.AddScoped<IPrescriptionCommandService, PrescriptionCommandService>();
         services.AddScoped<IFollowUpCommandService, FollowUpCommandService>();
         services.AddScoped<IClinicalRecordQueryService, ClinicalRecordQueryService>();
@@ -107,6 +110,7 @@ public static class DependencyInjection
         services.AddScoped<IPatientPackageQueryService, PatientPackageQueryService>();
         services.AddScoped<IDiscountService, DiscountService>();
         services.AddScoped<DiscountResolver>();
+        services.AddScoped<IReportingQueryService, ReportingQueryService>();
         services.AddHostedService<SuspendedAppointmentRevalidationWorker>();
         services.AddScoped<DatabaseInitializer>();
 

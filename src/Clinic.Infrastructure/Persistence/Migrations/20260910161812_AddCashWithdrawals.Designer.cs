@@ -4,6 +4,7 @@ using Clinic.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Clinic.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ClinicDbContext))]
-    partial class ClinicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260910161812_AddCashWithdrawals")]
+    partial class AddCashWithdrawals
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,9 +135,6 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_Appointments_Package_IdempotencyKey")
                         .HasFilter("[IdempotencyKey] IS NOT NULL");
-
-                    b.HasIndex("StartAt")
-                        .HasDatabaseName("IX_Appointments_StartAt");
 
                     b.HasIndex("UpdatedByUserId");
 
@@ -454,13 +454,9 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActorUserId");
+
                     b.HasIndex("OccurredAt");
-
-                    b.HasIndex("Action", "OccurredAt")
-                        .HasDatabaseName("IX_AuditLogs_Action_OccurredAt");
-
-                    b.HasIndex("ActorUserId", "OccurredAt")
-                        .HasDatabaseName("IX_AuditLogs_Actor_OccurredAt");
 
                     b.HasIndex("EntityType", "EntityId");
 
@@ -655,9 +651,6 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                     b.HasIndex("ShiftId", "Status", "RequestedAt")
                         .HasDatabaseName("IX_CashWithdrawals_Shift_Status_RequestedAt");
 
-                    b.HasIndex("Status", "ExecutedAt", "ExecutedByUserId")
-                        .HasDatabaseName("IX_CashWithdrawals_Status_ExecutedAt_Executor");
-
                     b.ToTable("CashWithdrawals", "cashier", t =>
                         {
                             t.HasCheckConstraint("CK_CashWithdrawals_Amount", "[Amount] > 0");
@@ -776,9 +769,6 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                     b.HasIndex("TransactionNumber")
                         .IsUnique()
                         .HasDatabaseName("UX_Payments_TransactionNumber");
-
-                    b.HasIndex("CollectedAt", "CollectedByUserId")
-                        .HasDatabaseName("IX_Payments_CollectedAt_Collector");
 
                     b.HasIndex("PatientId", "CollectedAt")
                         .HasDatabaseName("IX_Payments_Patient_CollectedAt");
@@ -988,9 +978,6 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ExecutionShiftId", "ExecutedAt")
                         .HasDatabaseName("IX_Refunds_Shift_ExecutedAt");
-
-                    b.HasIndex("Status", "ExecutedAt", "ExecutedByUserId")
-                        .HasDatabaseName("IX_Refunds_Status_ExecutedAt_Executor");
 
                     b.ToTable("Refunds", "cashier", t =>
                         {

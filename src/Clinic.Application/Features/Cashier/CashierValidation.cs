@@ -127,4 +127,31 @@ internal static class CashierValidation
 
         return Result.Success();
     }
+
+    public static Result CashWithdrawal(decimal amount, string? reason,
+        Guid idempotencyKey)
+    {
+        if (idempotencyKey == Guid.Empty || amount <= 0 ||
+            amount > Clinic.Domain.Cashier.CashWithdrawal.MaximumAmount ||
+            decimal.Round(amount, 2) != amount)
+        {
+            return Result.Failure(CashierErrors.Validation(
+                "مبلغ السحب يجب أن يكون أكبر من صفر وضمن الحد المسموح وبحد أقصى منزلتين عشريتين."));
+        }
+
+        return Reason(reason);
+    }
+
+    public static Result CashWithdrawalSearch(CashWithdrawalSearch search)
+    {
+        if (search.ShiftId is <= 0 || search.SecretaryUserId is <= 0 ||
+            (search.Status.HasValue && !Enum.IsDefined(search.Status.Value)) ||
+            search.From > search.To)
+        {
+            return Result.Failure(CashierErrors.Validation(
+                "معايير البحث في طلبات السحب غير صحيحة."));
+        }
+
+        return Page(search.PageNumber, search.PageSize);
+    }
 }

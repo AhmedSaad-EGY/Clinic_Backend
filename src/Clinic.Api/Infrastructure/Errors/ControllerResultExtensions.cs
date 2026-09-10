@@ -103,6 +103,7 @@ public static class ControllerResultExtensions
         "cashier.payment_not_found" => StatusCodes.Status404NotFound,
         "cashier.approval_request_not_found" => StatusCodes.Status404NotFound,
         "cashier.refund_not_found" => StatusCodes.Status404NotFound,
+        "cashier.cash_withdrawal_not_found" => StatusCodes.Status404NotFound,
         "cashier.payment_method_not_found" => StatusCodes.Status404NotFound,
         "cashier.conflict" => StatusCodes.Status409Conflict,
         "cashier.concurrency_conflict" => StatusCodes.Status409Conflict,
