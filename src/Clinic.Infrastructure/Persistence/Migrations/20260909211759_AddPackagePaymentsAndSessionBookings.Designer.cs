@@ -4,6 +4,7 @@ using Clinic.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Clinic.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ClinicDbContext))]
-    partial class ClinicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260909211759_AddPackagePaymentsAndSessionBookings")]
+    partial class AddPackagePaymentsAndSessionBookings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,8 +283,6 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasAlternateKey("AppointmentId", "SequenceNumber");
-
-                    b.HasAlternateKey("Id", "ServiceId");
 
                     b.HasIndex("AppointmentId", "DepartmentId");
 
@@ -1888,25 +1889,21 @@ namespace Clinic.Infrastructure.Persistence.Migrations
                     b.HasIndex("PackageSessionId")
                         .IsUnique()
                         .HasDatabaseName("UX_PackageSessionBookings_ReservedSession")
-                        .HasFilter("[Status] <> 2");
+                        .HasFilter("[Status] = 1");
 
                     b.HasIndex("AppointmentId", "PatientId");
 
-                    b.HasIndex("AppointmentServiceId", "AppointmentId", "ServiceId")
+                    b.HasIndex("AppointmentServiceId", "ServiceId")
                         .IsUnique();
 
                     b.HasIndex("PackageSessionId", "PatientPackageId", "ServiceId");
 
                     b.ToTable("PackageSessionBookings", "packages", t =>
                         {
-                            t.HasTrigger("TR_PackageSessionBookings_ValidateOwnership");
-
                             t.HasCheckConstraint("CK_PackageSessionBookings_Status", "[Status] IN (1, 2, 3)");
 
                             t.HasCheckConstraint("CK_PackageSessionBookings_Timeline", "([Status] = 1 AND [ReleasedAt] IS NULL AND [ConsumedAt] IS NULL) OR ([Status] = 2 AND [ReleasedAt] IS NOT NULL AND [ConsumedAt] IS NULL) OR ([Status] = 3 AND [ReleasedAt] IS NULL AND [ConsumedAt] IS NOT NULL)");
                         });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("Clinic.Domain.Packages.PatientPackage", b =>
@@ -3430,8 +3427,8 @@ namespace Clinic.Infrastructure.Persistence.Migrations
 
                     b.HasOne("Clinic.Domain.Appointments.AppointmentService", "AppointmentService")
                         .WithOne("PackageSessionBooking")
-                        .HasForeignKey("Clinic.Domain.Packages.PackageSessionBooking", "AppointmentServiceId", "AppointmentId", "ServiceId")
-                        .HasPrincipalKey("Clinic.Domain.Appointments.AppointmentService", "Id", "AppointmentId", "ServiceId")
+                        .HasForeignKey("Clinic.Domain.Packages.PackageSessionBooking", "AppointmentServiceId", "ServiceId")
+                        .HasPrincipalKey("Clinic.Domain.Appointments.AppointmentService", "Id", "ServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

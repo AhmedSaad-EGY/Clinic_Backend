@@ -18,6 +18,16 @@ internal static class AppointmentValidation
             return Result.Failure(AppointmentErrors.Validation("بيانات الحجز غير مكتملة."));
         }
 
+        if (input.PatientPackageId is <= 0 ||
+            input.PatientPackageId.HasValue &&
+            (input.FollowUp is not null || input.Services.Any(item => item.Quantity != 1) ||
+             input.Services.Select(item => item.ServiceId).Distinct().Count() !=
+             input.Services.Count))
+        {
+            return Result.Failure(AppointmentErrors.Validation(
+                "حجز الباقة يحتاج مفتاح طلب صالح وخدمات غير مكررة بكمية واحدة."));
+        }
+
         if (input.StartAt.Ticks % TimeSpan.TicksPerMinute != 0 ||
             input.StartAt.Minute % 15 != 0)
         {

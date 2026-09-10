@@ -63,6 +63,36 @@ public sealed class PaymentCommandHandlerTests
         Assert.True(service.WasCalled);
     }
 
+    [Fact]
+    public async Task PackageOnlyPaymentCallsService()
+    {
+        FakePaymentService service = new();
+        PostPaymentCommandHandler handler = new(new FakeCurrentUser(3), service);
+        PostPaymentInput input = new(null, [], [20],
+            [new PaymentMethodInput(1, 100m, null)], null, null);
+
+        Result<PostedPaymentModel> result = await handler.Handle(
+            new PostPaymentCommand(Guid.NewGuid(), input, false), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(service.WasCalled);
+    }
+
+    [Fact]
+    public async Task PaymentRequiresAtLeastOneAppointmentOrPackage()
+    {
+        FakePaymentService service = new();
+        PostPaymentCommandHandler handler = new(new FakeCurrentUser(3), service);
+        PostPaymentInput input = new(null, [], [],
+            [new PaymentMethodInput(1, 100m, null)], null, null);
+
+        Result<PostedPaymentModel> result = await handler.Handle(
+            new PostPaymentCommand(Guid.NewGuid(), input, false), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.False(service.WasCalled);
+    }
+
     private static PostPaymentInput ValidInput() => new(null, [10],
         [new PaymentMethodInput(1, 100m, null)], null, null);
 

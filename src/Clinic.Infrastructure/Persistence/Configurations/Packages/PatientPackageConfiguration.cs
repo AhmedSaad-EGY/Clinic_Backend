@@ -30,6 +30,7 @@ public sealed class PatientPackageConfiguration : IEntityTypeConfiguration<Patie
         builder.HasKey(item => item.Id);
         builder.HasAlternateKey(item => new { item.Id, item.DepartmentId });
         builder.HasAlternateKey(item => new { item.Id, item.PackageId });
+        builder.HasAlternateKey(item => new { item.Id, item.PatientId });
         builder.Property(item => item.PackageNameSnapshot).HasMaxLength(200).IsRequired();
         builder.Property(item => item.DepartmentNameSnapshot).HasMaxLength(150).IsRequired();
         builder.Property(item => item.BasePriceSnapshot).HasPrecision(18, 2);

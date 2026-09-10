@@ -54,8 +54,16 @@ internal static class AppointmentInfrastructureSupport
                 item.Service.Name, item.DoctorService.DoctorId,
                 item.DoctorService.Doctor.Name, item.SequenceNumber,
                 item.SegmentStartAt, item.SegmentEndAt, item.Quantity, item.UnitPrice,
-                item.NetAmount, item.Devices.Select(device => device.DeviceId).ToArray()))
-            .ToArray());
+                item.NetAmount, item.Devices.Select(device => device.DeviceId).ToArray(),
+                item.PackageCoveredAmount, item.PackageSessionBooking is null ? null :
+                    new PackageSessionBookingModel(item.PackageSessionBooking.Id,
+                        item.PackageSessionBooking.PackageSessionId,
+                        item.PackageSessionBooking.Session.SequenceNumber,
+                        item.PackageSessionBooking.Status,
+                        item.PackageSessionBooking.ReservedAt,
+                        item.PackageSessionBooking.ReleasedAt,
+                        item.PackageSessionBooking.ConsumedAt)))
+            .ToArray(), appointment.PatientPackageId, appointment.PackageCoveredAmount);
 
     public static IQueryable<Appointment> Details(IQueryable<Appointment> query) => query
         .Include(item => item.Patient)
@@ -63,7 +71,9 @@ internal static class AppointmentInfrastructureSupport
         .Include(item => item.Services).ThenInclude(item => item.Service)
         .Include(item => item.Services).ThenInclude(item => item.DoctorService)
             .ThenInclude(item => item.Doctor)
-        .Include(item => item.Services).ThenInclude(item => item.Devices);
+        .Include(item => item.Services).ThenInclude(item => item.Devices)
+        .Include(item => item.Services).ThenInclude(item => item.PackageSessionBooking)
+            .ThenInclude(item => item!.Session);
 
     public static bool IsDoctorAvailable(DateTimeOffset from, DateTimeOffset to,
         IReadOnlyCollection<DoctorSchedule> schedules,

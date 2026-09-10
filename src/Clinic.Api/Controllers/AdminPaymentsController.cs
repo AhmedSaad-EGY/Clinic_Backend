@@ -60,7 +60,7 @@ public sealed class AdminPaymentsController : ControllerBase
             shiftId, AdminOverride: true), token));
 
     private static PostPaymentInput Map(AdminPostPaymentRequest request) => new(
-        request.ShiftId, request.AppointmentIds,
+        request.ShiftId, request.AppointmentIds, request.PatientPackageIds ?? [],
         request.MethodAllocations.Select(item => new PaymentMethodInput(
             item.PaymentMethodId, item.Amount, item.ReferenceNumber)).ToArray(),
         request.Note, request.Reason);

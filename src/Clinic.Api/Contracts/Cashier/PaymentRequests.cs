@@ -5,9 +5,10 @@ public sealed record PaymentMethodAllocationRequest(long PaymentMethodId,
 
 public sealed record PostPaymentRequest(IReadOnlyCollection<long> AppointmentIds,
     IReadOnlyCollection<PaymentMethodAllocationRequest> MethodAllocations,
-    string? Note = null);
+    string? Note = null, IReadOnlyCollection<long>? PatientPackageIds = null);
 
 public sealed record AdminPostPaymentRequest(long ShiftId,
     IReadOnlyCollection<long> AppointmentIds,
     IReadOnlyCollection<PaymentMethodAllocationRequest> MethodAllocations,
-    string Reason, string? Note = null);
+    string Reason, string? Note = null,
+    IReadOnlyCollection<long>? PatientPackageIds = null);

@@ -29,4 +29,44 @@ public sealed class PackageSession : Entity
     public DateTimeOffset? ReservedAt { get; private set; }
     public DateTimeOffset? ConsumedAt { get; private set; }
     public byte[] RowVersion { get; private set; } = [];
+
+    public PackageSessionBooking Reserve(Appointments.Appointment appointment,
+        Appointments.AppointmentService appointmentService, DateTimeOffset reservedAt)
+    {
+        if (Status != PackageSessionStatus.Available ||
+            appointment.PatientPackageId != PatientPackageId ||
+            appointmentService.ServiceId != ServiceId ||
+            appointmentService.AppointmentId != appointment.Id)
+        {
+            throw new DomainException("لا يمكن حجز جلسة الباقة لهذه الخدمة.");
+        }
+
+        Status = PackageSessionStatus.Reserved;
+        ReservedAt = reservedAt;
+        ConsumedAt = null;
+        return PackageSessionBooking.Create(this, appointment, appointmentService, reservedAt);
+    }
+
+    internal void Release()
+    {
+        if (Status != PackageSessionStatus.Reserved)
+        {
+            throw new DomainException("لا يمكن تحرير جلسة غير محجوزة.");
+        }
+
+        Status = PackageSessionStatus.Available;
+        ReservedAt = null;
+        ConsumedAt = null;
+    }
+
+    internal void Consume(DateTimeOffset consumedAt)
+    {
+        if (Status != PackageSessionStatus.Reserved)
+        {
+            throw new DomainException("لا يمكن استهلاك جلسة غير محجوزة.");
+        }
+
+        Status = PackageSessionStatus.Consumed;
+        ConsumedAt = consumedAt;
+    }
 }

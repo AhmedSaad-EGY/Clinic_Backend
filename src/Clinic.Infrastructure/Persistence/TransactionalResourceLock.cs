@@ -65,6 +65,11 @@ internal static class TransactionalResourceLock
         AcquireAsync(dbContext, $"clinic:appointment:{appointmentId}",
             cancellationToken);
 
+    public static Task AcquirePackageAppointmentRequestAsync(ClinicDbContext dbContext,
+        Guid idempotencyKey, CancellationToken cancellationToken) =>
+        AcquireAsync(dbContext, $"clinic:package-appointment:{idempotencyKey:N}",
+            cancellationToken);
+
     public static Task AcquirePaymentAsync(ClinicDbContext dbContext,
         long paymentId, CancellationToken cancellationToken) =>
         AcquireAsync(dbContext, $"clinic:payment:{paymentId}", cancellationToken);

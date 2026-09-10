@@ -45,8 +45,10 @@ public sealed class PatientPackageQueryService : IPatientPackageQueryService
         DateTimeOffset now = _timeProvider.GetUtcNow();
         bool stopped = await IsDepartmentStoppedAsync(patientPackage.DepartmentId, now,
             cancellationToken);
+        PatientPackagePaymentReferenceModel? payment = await PatientPackageInfrastructureSupport
+            .PaymentReferenceAsync(_dbContext, patientPackage.Id, cancellationToken);
         return Result.Success(PatientPackageInfrastructureSupport.Map(patientPackage, stopped,
-            now));
+            now) with { Payment = payment });
     }
 
     public async Task<Result<IReadOnlyCollection<PackageSessionModel>>> ListSessionsAsync(
@@ -69,7 +71,72 @@ public sealed class PatientPackageQueryService : IPatientPackageQueryService
                 item.SequenceNumber, item.UnitPriceSnapshot, item.Status, item.ReservedAt,
                 item.ConsumedAt, Convert.ToBase64String(item.RowVersion)))
             .ToArrayAsync(cancellationToken);
-        return Result.Success<IReadOnlyCollection<PackageSessionModel>>(sessions);
+        long[] sessionIds = sessions.Select(item => item.Id).ToArray();
+        Dictionary<long, (long AppointmentId, PackageSessionBookingStatus Status)> bookings =
+            (await _dbContext.PackageSessionBookings.AsNoTracking()
+                .Where(item => sessionIds.Contains(item.PackageSessionId) &&
+                    item.Status != PackageSessionBookingStatus.Released)
+                .Select(item => new { item.PackageSessionId, item.AppointmentId, item.Status })
+                .ToArrayAsync(cancellationToken)).ToDictionary(item => item.PackageSessionId,
+                    item => (item.AppointmentId, item.Status));
+        return Result.Success<IReadOnlyCollection<PackageSessionModel>>(sessions.Select(item =>
+            bookings.TryGetValue(item.Id, out var booking)
+                ? item with { AppointmentId = booking.AppointmentId,
+                    BookingStatus = booking.Status }
+                : item).ToArray());
+    }
+
+    public async Task<Result<PackageBookingOptionsModel>> GetBookingOptionsAsync(
+        long patientPackageId, DateTimeOffset startAt,
+        CancellationToken cancellationToken)
+    {
+        PatientPackage? patientPackage = await FullQuery().SingleOrDefaultAsync(item =>
+            item.Id == patientPackageId, cancellationToken);
+        if (patientPackage is null)
+        {
+            return Result.Failure<PackageBookingOptionsModel>(
+                PackageErrors.PatientPackageNotFound);
+        }
+
+        DateTimeOffset? deadline = patientPackage.FirstUsedAt.HasValue
+            ? patientPackage.ExpiresAt : patientPackage.ActivationDeadlineAt;
+        bool stopped = await IsDepartmentStoppedAsync(patientPackage.DepartmentId, startAt,
+            cancellationToken);
+        string? reason = patientPackage.Status != PatientPackageStatus.Active
+            ? "الباقة ليست في حالة فعالة."
+            : patientPackage.PaymentStatus == PatientPackagePaymentStatus.Unpaid
+                ? "الباقة في انتظار السداد الكامل."
+            : patientPackage.Package.Department.IsArchived ? "القسم مؤرشف."
+            : deadline is null || startAt >= deadline ? "الموعد خارج صلاحية الباقة."
+            : stopped ? "القسم متوقف في هذا الموعد وسيُنشأ الحجز موقوفًا."
+            : null;
+        PackageBookingOptionServiceModel[] services = patientPackage.Services
+            .OrderBy(item => item.ServiceNameSnapshot)
+            .Select(item =>
+            {
+                int availableSessions = item.Sessions.Count(session =>
+                    session.Status == PackageSessionStatus.Available);
+                string? serviceReason = item.SourcePackageService.Service.IsArchived ||
+                    !item.SourcePackageService.Service.IsActive
+                    ? "الخدمة غير متاحة حاليًا."
+                    : availableSessions == 0 ? "لا توجد جلسات متاحة لهذه الخدمة." : null;
+                return new PackageBookingOptionServiceModel(item.ServiceId,
+                    item.ServiceNameSnapshot, item.SpecializationIdSnapshot,
+                    item.SpecializationNameSnapshot,
+                    item.SourcePackageService.Service.DurationMinutes,
+                    availableSessions, serviceReason is null, serviceReason);
+            }).ToArray();
+        const string stoppedWarning = "القسم متوقف في هذا الموعد وسيُنشأ الحجز موقوفًا.";
+        bool canBook = (reason is null || reason == stoppedWarning) &&
+            services.Any(item => item.CanBook);
+        if ((reason is null || reason == stoppedWarning) && !services.Any(item => item.CanBook))
+        {
+            reason = "لا توجد خدمات متاحة ذات رصيد في الباقة.";
+        }
+
+        return Result.Success(new PackageBookingOptionsModel(patientPackage.Id,
+            patientPackage.PatientId, patientPackage.DepartmentId,
+            patientPackage.PackageNameSnapshot, startAt, canBook, reason, services));
     }
 
     public async Task<Result<PatientPackagePage>> SearchAdminAsync(
@@ -137,9 +204,21 @@ public sealed class PatientPackageQueryService : IPatientPackageQueryService
                 item.CancelledAt == null && item.StartAt <= now && now < item.EndAt)
             .Select(item => item.DepartmentId).Distinct().ToArrayAsync(cancellationToken))
             .ToHashSet();
+        long[] patientPackageIds = patientPackages.Select(item => item.Id).ToArray();
+        Dictionary<long, PatientPackagePaymentReferenceModel> payments = await _dbContext
+            .PackagePaymentAllocations.AsNoTracking()
+            .Where(item => patientPackageIds.Contains(item.PatientPackageId))
+            .Select(item => new
+            {
+                item.PatientPackageId,
+                Reference = new PatientPackagePaymentReferenceModel(item.PaymentId,
+                    item.Payment.TransactionNumber, item.Payment.CollectedAt)
+            }).ToDictionaryAsync(item => item.PatientPackageId, item => item.Reference,
+                cancellationToken);
         return new PatientPackagePage(patientPackages.Select(item =>
             PatientPackageInfrastructureSupport.Map(item, stopped.Contains(item.DepartmentId),
-                now)).ToArray(), pageNumber, pageSize, count);
+                now) with { Payment = payments.GetValueOrDefault(item.Id) }).ToArray(),
+            pageNumber, pageSize, count);
     }
 
     private IQueryable<PatientPackage> FullQuery(IQueryable<PatientPackage>? source = null) =>

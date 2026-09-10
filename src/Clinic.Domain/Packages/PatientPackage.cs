@@ -135,6 +135,36 @@ public sealed class PatientPackage : AggregateRoot
         UpdatedAt = updatedAt;
     }
 
+    public void RecordFullPayment(decimal amount, DateTimeOffset collectedAt)
+    {
+        if (PaymentStatus != PatientPackagePaymentStatus.Unpaid ||
+            amount != NetPriceSnapshot)
+        {
+            throw new DomainException("الباقة غير قابلة للتحصيل أو المبلغ لا يساوي قيمتها الكاملة.");
+        }
+
+        PaymentStatus = PatientPackagePaymentStatus.Paid;
+        ActivationWindowStartedAt = collectedAt;
+        ActivationDeadlineAt = collectedAt.AddDays(ActivationGraceDaysSnapshot);
+    }
+
+    public void RecordFirstUse(DateTimeOffset visitStartedAt)
+    {
+        if (FirstUsedAt.HasValue)
+        {
+            return;
+        }
+
+        if (PaymentStatus == PatientPackagePaymentStatus.Unpaid ||
+            ActivationDeadlineAt is null || visitStartedAt >= ActivationDeadlineAt.Value)
+        {
+            throw new DomainException("موعد الجلسة خارج مهلة بدء استخدام الباقة.");
+        }
+
+        FirstUsedAt = visitStartedAt;
+        ExpiresAt = visitStartedAt.AddDays(UsageDurationDaysSnapshot);
+    }
+
     private static void ValidateIdentifier(long value, string fieldName)
     {
         if (value <= 0)

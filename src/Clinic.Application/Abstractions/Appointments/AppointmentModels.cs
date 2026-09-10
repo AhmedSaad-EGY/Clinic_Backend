@@ -1,4 +1,5 @@
 using Clinic.Domain.Appointments;
+using Clinic.Domain.Packages;
 using Clinic.Domain.Patients;
 
 namespace Clinic.Application.Abstractions.Appointments;
@@ -16,7 +17,13 @@ public sealed record AppointmentInput(
     long DepartmentId,
     DateTimeOffset StartAt,
     IReadOnlyCollection<AppointmentLineInput> Services,
-    FollowUpBookingInput? FollowUp = null);
+    FollowUpBookingInput? FollowUp = null,
+    long? PatientPackageId = null,
+    Guid? IdempotencyKey = null);
+
+public sealed record PackageSessionBookingModel(long Id, long PackageSessionId,
+    int SequenceNumber, PackageSessionBookingStatus Status, DateTimeOffset ReservedAt,
+    DateTimeOffset? ReleasedAt, DateTimeOffset? ConsumedAt);
 
 public sealed record AppointmentServiceModel(
     long Id,
@@ -30,7 +37,9 @@ public sealed record AppointmentServiceModel(
     int Quantity,
     decimal UnitPrice,
     decimal NetAmount,
-    IReadOnlyCollection<long> DeviceIds);
+    IReadOnlyCollection<long> DeviceIds,
+    decimal PackageCoveredAmount,
+    PackageSessionBookingModel? PackageSessionBooking);
 
 public sealed record AppointmentModel(
     long Id,
@@ -53,7 +62,10 @@ public sealed record AppointmentModel(
     long? UpdatedByUserId,
     DateTimeOffset? UpdatedAt,
     string RowVersion,
-    IReadOnlyCollection<AppointmentServiceModel> Services);
+    IReadOnlyCollection<AppointmentServiceModel> Services,
+    long? PatientPackageId,
+    decimal PackageCoveredAmount,
+    bool WasReplayed = false);
 
 public sealed record AvailableSlot(DateTimeOffset StartAt, DateTimeOffset EndAt);
 

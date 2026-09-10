@@ -1,18 +1,21 @@
 using System.Net;
 using System.Net.Http.Json;
 using Clinic.Api.IntegrationTests.Identity;
+using Clinic.Application.Abstractions.Appointments;
 using Clinic.Application.Abstractions.Cashier;
 using Clinic.Application.Common;
 using Clinic.Domain.Appointments;
 using Clinic.Domain.Cashier;
 using Clinic.Domain.Catalog;
 using Clinic.Domain.Patients;
+using Clinic.Domain.Packages;
 using Clinic.Domain.Scheduling;
 using Clinic.Infrastructure.Identity;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Clinic.Api.IntegrationTests.Cashier;
@@ -52,6 +55,10 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
             Assert.Contains("/api/cashier/approval-requests/{requestId}/refunds",
                 document);
             Assert.Contains("/api/admin/cashier/refunds/{refundId}", document);
+            Assert.Contains("patientPackageIds", document);
+            Assert.Contains("/api/patient-packages/{patientPackageId}/booking-options",
+                document);
+            Assert.Contains("packageCoveredAmount", document);
         }
 
         SecretaryResponse secretary = await CreateSecretaryAsync(admin);
@@ -59,7 +66,8 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
             GeneratedShiftsResponse>(admin, "/api/admin/cashier/shifts/generate", new(
                 secretary.Id, clinicDate, clinicDate, [ClinicWeekday(clinicDate)],
                 new TimeOnly(10, 0), new TimeOnly(14, 0)))).Items);
-        long[] appointmentIds = await SeedAppointmentsAsync(clinicDate, start);
+        SeededPaymentTargets seeded = await SeedPaymentTargetsAsync(clinicDate, start);
+        long[] appointmentIds = seeded.AppointmentIds;
 
         using HttpClient cashier = _fixture.CreateClient();
         await LoginAndChangePasswordAsync(cashier, secretary.UserName,
@@ -121,6 +129,161 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         Assert.Equal(500m, payment.TotalAmount);
         Assert.Equal(2, payment.AppointmentAllocations.Count);
 
+        PostPaymentRequest packageRequest = new([], [new(1, 400m, null)],
+            "تحصيل باقة", [seeded.PatientPackageId]);
+        using HttpResponseMessage packagePaymentResponse = await PostPaymentAsync(cashier,
+            packageRequest, Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.Created, packagePaymentResponse.StatusCode);
+        PaymentResponse packagePayment = await packagePaymentResponse.Content
+            .ReadFromJsonAsync<PaymentResponse>() ?? throw new InvalidOperationException();
+        PackagePaymentAllocationResponse packageAllocation =
+            Assert.Single(packagePayment.PackageAllocations);
+        Assert.Equal(seeded.PatientPackageId, packageAllocation.PatientPackageId);
+        Assert.Equal(400m, packageAllocation.Amount);
+        PatientPackagePaymentResponse paidPackage =
+            await GetAsync<PatientPackagePaymentResponse>(cashier,
+                $"/api/patient-packages/{seeded.PatientPackageId}");
+        Assert.Equal(PatientPackagePaymentStatus.Paid, paidPackage.PaymentStatus);
+        Assert.Equal(packagePayment.Id, paidPackage.Payment?.PaymentId);
+        Assert.Equal(packagePayment.TransactionNumber,
+            paidPackage.Payment?.TransactionNumber);
+        PackageBookingOptionsResponse bookingOptions = await GetAsync<
+            PackageBookingOptionsResponse>(cashier,
+            $"/api/patient-packages/{seeded.PatientPackageId}/booking-options" +
+            $"?startAt={Uri.EscapeDataString(start.AddHours(3).ToString("O"))}");
+        Assert.True(bookingOptions.CanBook);
+        PackageBookingOptionServiceResponse firstOption = Assert.Single(
+            bookingOptions.Services, item => item.ServiceId == seeded.ServiceId);
+        Assert.Equal(2, firstOption.AvailableSessions);
+        Assert.True(firstOption.CanBook);
+
+        await SetServiceActiveAsync(seeded.SecondServiceId, false);
+        PackageBookingOptionsResponse partiallyAvailable = await GetAsync<
+            PackageBookingOptionsResponse>(cashier,
+            $"/api/patient-packages/{seeded.PatientPackageId}/booking-options" +
+            $"?startAt={Uri.EscapeDataString(start.AddHours(3).ToString("O"))}");
+        Assert.True(partiallyAvailable.CanBook);
+        Assert.True(Assert.Single(partiallyAvailable.Services,
+            item => item.ServiceId == seeded.ServiceId).CanBook);
+        Assert.False(Assert.Single(partiallyAvailable.Services,
+            item => item.ServiceId == seeded.SecondServiceId).CanBook);
+        await SetServiceActiveAsync(seeded.SecondServiceId, true);
+
+        Guid appointmentKey = Guid.NewGuid();
+        CreatePackageAppointmentRequest packageAppointmentRequest = new(seeded.PatientId,
+            seeded.DepartmentId, start.AddHours(3),
+            [new(seeded.ServiceId, seeded.DoctorId, 1, [])],
+            seeded.PatientPackageId);
+        using HttpResponseMessage packageAppointmentResponse = await CreatePostMessageAsync(
+            cashier, "/api/appointments", packageAppointmentRequest, appointmentKey);
+        string packageAppointmentBody = await packageAppointmentResponse.Content
+            .ReadAsStringAsync();
+        Assert.True(packageAppointmentResponse.StatusCode == HttpStatusCode.Created,
+            $"{packageAppointmentResponse.StatusCode}: {packageAppointmentBody}");
+        PackageAppointmentResponse packageAppointment = await packageAppointmentResponse.Content
+            .ReadFromJsonAsync<PackageAppointmentResponse>() ??
+            throw new InvalidOperationException();
+        Assert.Equal(PaymentStatus.CoveredByPackage, packageAppointment.PaymentStatus);
+        Assert.Equal(0m, packageAppointment.NetAmount);
+        Assert.Equal(200m, packageAppointment.PackageCoveredAmount);
+        Assert.Equal(PackageSessionBookingStatus.Reserved,
+            Assert.Single(packageAppointment.Services).PackageSessionBooking?.Status);
+        using (HttpResponseMessage replayedAppointment = await CreatePostMessageAsync(cashier,
+            "/api/appointments", packageAppointmentRequest, appointmentKey))
+        {
+            Assert.Equal(HttpStatusCode.OK, replayedAppointment.StatusCode);
+            Assert.Equal("true", replayedAppointment.Headers
+                .GetValues("Idempotency-Replayed").Single());
+        }
+        using (HttpResponseMessage changedAppointment = await CreatePostMessageAsync(cashier,
+            "/api/appointments", packageAppointmentRequest with
+            { StartAt = start.AddHours(3).AddMinutes(15) }, appointmentKey))
+        {
+            Assert.Equal(HttpStatusCode.Conflict, changedAppointment.StatusCode);
+        }
+
+        _fixture.Clock.SetUtcNow(start.AddHours(3).AddMinutes(31));
+        using (HttpResponseMessage completedPackageAppointment = await PostAsync(cashier,
+            $"/api/appointments/{packageAppointment.Id}/complete",
+            new AppointmentStateRequest(packageAppointment.RowVersion)))
+        {
+            Assert.Equal(HttpStatusCode.NoContent, completedPackageAppointment.StatusCode);
+        }
+        PackageAppointmentResponse completedAppointment = await GetAsync<
+            PackageAppointmentResponse>(cashier,
+            $"/api/appointments/{packageAppointment.Id}");
+        Assert.Equal(AppointmentStatus.Completed, completedAppointment.Status);
+        Assert.Equal(PackageSessionBookingStatus.Consumed,
+            Assert.Single(completedAppointment.Services).PackageSessionBooking?.Status);
+
+        await AddDepartmentClosureAsync(seeded.DepartmentId, seeded.AdminUserId,
+            start.AddHours(4), start.AddHours(4).AddMinutes(30));
+        CreatePackageAppointmentRequest noShowRequest = packageAppointmentRequest with
+        { StartAt = start.AddHours(4) };
+        using HttpResponseMessage noShowCreateResponse = await CreatePostMessageAsync(cashier,
+            "/api/appointments", noShowRequest, Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.Created, noShowCreateResponse.StatusCode);
+        PackageAppointmentResponse noShowAppointment = await noShowCreateResponse.Content
+            .ReadFromJsonAsync<PackageAppointmentResponse>() ??
+            throw new InvalidOperationException();
+        Assert.Equal(AppointmentStatus.Suspended, noShowAppointment.Status);
+        PackageAppointmentResponse rescheduled = await PutAndReadAsync<
+            UpdatePackageAppointmentRequest, PackageAppointmentResponse>(cashier,
+            $"/api/appointments/{noShowAppointment.Id}", new(seeded.PatientId,
+                seeded.DepartmentId, start.AddHours(4).AddMinutes(30),
+                noShowRequest.Services, noShowAppointment.RowVersion,
+                seeded.PatientPackageId));
+        Assert.Equal(AppointmentStatus.Confirmed, rescheduled.Status);
+        Assert.Equal(PackageSessionBookingStatus.Reserved,
+            Assert.Single(rescheduled.Services).PackageSessionBooking?.Status);
+
+        using (HttpResponseMessage exhaustedAvailability = await PostAsync(cashier,
+            "/api/appointments/availability", packageAppointmentRequest with
+            { StartAt = start.AddHours(5) }))
+        {
+            Assert.Equal(HttpStatusCode.BadRequest,
+                exhaustedAvailability.StatusCode);
+        }
+        using (HttpResponseMessage noShowResponse = await PostAsync(cashier,
+            $"/api/appointments/{noShowAppointment.Id}/no-show",
+            new AppointmentStateRequest(rescheduled.RowVersion)))
+        {
+            Assert.Equal(HttpStatusCode.NoContent, noShowResponse.StatusCode);
+        }
+
+        _fixture.Clock.SetUtcNow(start.AddMinutes(-1));
+        CreatePackageAppointmentRequest cancellationRequest = packageAppointmentRequest with
+        { StartAt = start.AddHours(5) };
+        using HttpResponseMessage cancellationCreateResponse = await CreatePostMessageAsync(
+            cashier, "/api/appointments", cancellationRequest, Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.Created, cancellationCreateResponse.StatusCode);
+        PackageAppointmentResponse cancellationAppointment =
+            await cancellationCreateResponse.Content
+                .ReadFromJsonAsync<PackageAppointmentResponse>() ??
+            throw new InvalidOperationException();
+        ApprovalRequestResponse packageCancellation = await PostAndReadAsync<
+            CreateCancellationApprovalRequest, ApprovalRequestResponse>(cashier,
+            "/api/cashier/approval-requests/appointment-cancellations",
+            new(cancellationAppointment.Id, cancellationAppointment.RowVersion,
+                "إلغاء جلسة باقة"));
+        Assert.Null(packageCancellation.RequestedAmount);
+        Assert.Empty(packageCancellation.RefundableMethods);
+        _ = await PostAndReadAsync<ReviewApprovalRequest, ApprovalRequestResponse>(admin,
+            $"/api/admin/cashier/approval-requests/{packageCancellation.Id}/approve",
+            new(packageCancellation.RowVersion, "اعتماد إلغاء جلسة الباقة"));
+        PackageAppointmentResponse cancelledPackageAppointment = await GetAsync<
+            PackageAppointmentResponse>(cashier,
+            $"/api/appointments/{cancellationAppointment.Id}");
+        Assert.Equal(AppointmentStatus.Cancelled, cancelledPackageAppointment.Status);
+        await VerifyPackageAppointmentRetryAsync(seeded, start, secretary.Id);
+
+        _fixture.Clock.SetUtcNow(start);
+        using (HttpResponseMessage repeatedPackage = await PostPaymentAsync(cashier,
+            packageRequest, Guid.NewGuid()))
+        {
+            Assert.Equal(HttpStatusCode.Conflict, repeatedPackage.StatusCode);
+        }
+
         using HttpResponseMessage changedReplay = await PostPaymentAsync(cashier,
             request with
             {
@@ -135,17 +298,17 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
 
         ShiftSummaryResponse summary = await GetAsync<ShiftSummaryResponse>(cashier,
             $"/api/cashier/shifts/{shift.Id}/collection-summary");
-        Assert.Equal(200m, summary.CashCollected);
+        Assert.Equal(600m, summary.CashCollected);
         Assert.Equal(300m, summary.ElectronicCollected);
-        Assert.Equal(500m, summary.TotalCollected);
-        Assert.Equal(300m, summary.CurrentExpectedCash);
-        Assert.Equal(1, summary.PaymentCount);
+        Assert.Equal(900m, summary.TotalCollected);
+        Assert.Equal(700m, summary.CurrentExpectedCash);
+        Assert.Equal(2, summary.PaymentCount);
 
         await using (AsyncServiceScope scope = _fixture.Services.CreateAsyncScope())
         {
             ClinicDbContext dbContext = scope.ServiceProvider
                 .GetRequiredService<ClinicDbContext>();
-            Assert.Equal(1, await dbContext.Payments.CountAsync());
+            Assert.Equal(2, await dbContext.Payments.CountAsync());
             Assert.All(await dbContext.Appointments.Where(item =>
                 appointmentIds.Contains(item.Id)).ToArrayAsync(), item =>
             {
@@ -154,9 +317,17 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
             });
             Assert.True(await dbContext.AuditLogs.AnyAsync(item =>
                 item.Action == "cashier.payment_posted"));
+            PatientPackage patientPackage = await dbContext.PatientPackages.SingleAsync(
+                item => item.Id == seeded.PatientPackageId);
+            Assert.Equal(PatientPackagePaymentStatus.Paid, patientPackage.PaymentStatus);
+            Assert.Equal(start, patientPackage.ActivationWindowStartedAt);
+            Assert.Equal(start.AddDays(14), patientPackage.ActivationDeadlineAt);
+            Assert.True(await dbContext.AuditLogs.AnyAsync(item =>
+                item.Action == "packages.patient_package.paid"));
             AppointmentPaymentAllocationResponse allocation =
                 payment.AppointmentAllocations.First();
-            long paymentPatientId = (await dbContext.Payments.SingleAsync()).PatientId;
+            long paymentPatientId = (await dbContext.Payments.SingleAsync(item =>
+                item.Id == payment.Id)).PatientId;
             await Assert.ThrowsAsync<SqlException>(() =>
                 dbContext.Database.ExecuteSqlInterpolatedAsync($"""
                     INSERT INTO [cashier].[AppointmentPaymentAllocations]
@@ -164,7 +335,65 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
                     VALUES ({payment.Id}, {allocation.AppointmentId},
                         {paymentPatientId}, {allocation.Amount});
                     """));
+
+            PackageSessionBooking consumedBooking = await dbContext
+                .PackageSessionBookings.AsNoTracking().SingleAsync(item =>
+                    item.AppointmentId == packageAppointment.Id);
+            PackageSessionBooking releasedBooking = await dbContext
+                .PackageSessionBookings.AsNoTracking().Where(item =>
+                    item.AppointmentId == noShowAppointment.Id &&
+                    item.Status == PackageSessionBookingStatus.Released)
+                .OrderByDescending(item => item.Id).FirstAsync();
+            await Assert.ThrowsAsync<SqlException>(() => dbContext.Database
+                .ExecuteSqlInterpolatedAsync($"""
+                    UPDATE [packages].[PackageSessionBookings]
+                    SET [AppointmentId] = {cancellationAppointment.Id}
+                    WHERE [Id] = {releasedBooking.Id};
+                    """));
+            long otherPackageSessionId = await dbContext.PackageSessions.AsNoTracking()
+                .Where(item => item.PatientPackageId == seeded.ConcurrentPatientPackageId &&
+                    item.ServiceId == seeded.ServiceId)
+                .Select(item => item.Id).FirstAsync();
+            await Assert.ThrowsAsync<SqlException>(() => dbContext.Database
+                .ExecuteSqlInterpolatedAsync($"""
+                    UPDATE [packages].[PackageSessionBookings]
+                    SET [PackageSessionId] = {otherPackageSessionId},
+                        [PatientPackageId] = {seeded.ConcurrentPatientPackageId}
+                    WHERE [Id] = {releasedBooking.Id};
+                    """));
+            await Assert.ThrowsAsync<SqlException>(() => dbContext.Database
+                .ExecuteSqlInterpolatedAsync($"""
+                    UPDATE [packages].[PackageSessionBookings]
+                    SET [PackageSessionId] = {consumedBooking.PackageSessionId},
+                        [Status] = {(int)PackageSessionBookingStatus.Reserved},
+                        [ReleasedAt] = NULL,
+                        [ConsumedAt] = NULL
+                    WHERE [Id] = {releasedBooking.Id};
+                    """));
         }
+
+        PatientPackagePaymentResponse packageBeforeExtension = await GetAsync<
+            PatientPackagePaymentResponse>(cashier,
+            $"/api/patient-packages/{seeded.PatientPackageId}");
+        PatientPackagePaymentResponse extendedPackage = await PostAndReadAsync<
+            ExtendPatientPackageRequest, PatientPackagePaymentResponse>(admin,
+            $"/api/admin/patient-packages/{seeded.PatientPackageId}/extend",
+            new(PatientPackageExtensionType.UsageExpiry, start.AddDays(120),
+                "تمديد بعد التحصيل", packageBeforeExtension.RowVersion));
+        Assert.Equal(packagePayment.Id, extendedPackage.Payment?.PaymentId);
+        Assert.Equal(packagePayment.TransactionNumber,
+            extendedPackage.Payment?.TransactionNumber);
+
+        PostPaymentRequest concurrentPackageRequest = new([], [new(1, 400m, null)],
+            "تحصيل متزامن", [seeded.ConcurrentPatientPackageId]);
+        HttpResponseMessage[] packageConcurrency = await Task.WhenAll(
+            PostPaymentAsync(cashier, concurrentPackageRequest, Guid.NewGuid()),
+            PostPaymentAsync(cashier, concurrentPackageRequest, Guid.NewGuid()));
+        Assert.Single(packageConcurrency,
+            item => item.StatusCode == HttpStatusCode.Created);
+        Assert.Single(packageConcurrency,
+            item => item.StatusCode == HttpStatusCode.Conflict);
+        foreach (HttpResponseMessage response in packageConcurrency) response.Dispose();
 
         AppointmentVersionResponse firstAppointment =
             await GetAsync<AppointmentVersionResponse>(cashier,
@@ -307,7 +536,7 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
             item.Action == "cashier.refund_posted"));
     }
 
-    private async Task<long[]> SeedAppointmentsAsync(DateOnly clinicDate,
+    private async Task<SeededPaymentTargets> SeedPaymentTargetsAsync(DateOnly clinicDate,
         DateTimeOffset start)
     {
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
@@ -337,6 +566,10 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         DoctorService firstAssignment = DoctorService.Create(doctor, firstService);
         DoctorService secondAssignment = DoctorService.Create(doctor, secondService);
         db.DoctorServices.AddRange(firstAssignment, secondAssignment);
+
+        db.DoctorSchedules.Add(DoctorSchedule.Create(doctor.Id,
+            ClinicWeekday(clinicDate), new TimeOnly(0, 0), new TimeOnly(23, 59),
+            clinicDate, clinicDate));
         Patient patient = Patient.Create("مريض الدفع",
             $"010{Random.Shared.Next(10000000, 99999999):D8}", null, null, 30,
             PatientGender.Male, null, null, null, null, null, admin.Id,
@@ -353,7 +586,79 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         second.AddService(secondService.Id, secondAssignment.Id, 30, 1, 200m, []);
         db.Appointments.AddRange(first, second);
         await db.SaveChangesAsync();
-        return [first.Id, second.Id];
+        Package package = Package.Create(department.Id, "باقة الدفع", 400m, 14, 90,
+            [(firstService, 2, 200m), (secondService, 1, 200m)], admin.Id, now);
+        db.Packages.Add(package);
+        await db.SaveChangesAsync();
+        PatientPackage patientPackage = PatientPackage.Register(patient, package,
+            Guid.NewGuid(), new string('A', 64), admin.Id, now);
+        PatientPackage concurrentPatientPackage = PatientPackage.Register(patient, package,
+            Guid.NewGuid(), new string('B', 64), admin.Id, now);
+        db.PatientPackages.AddRange(patientPackage, concurrentPatientPackage);
+        await db.SaveChangesAsync();
+        return new([first.Id, second.Id], patientPackage.Id,
+            concurrentPatientPackage.Id, patient.Id, department.Id, firstService.Id,
+            secondService.Id, doctor.Id, admin.Id);
+    }
+
+    private async Task SetServiceActiveAsync(long serviceId, bool isActive)
+    {
+        await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
+        ClinicDbContext dbContext = scope.ServiceProvider
+            .GetRequiredService<ClinicDbContext>();
+        await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE [catalog].[Services]
+            SET [IsActive] = {isActive}
+            WHERE [Id] = {serviceId};
+            """);
+    }
+
+    private async Task AddDepartmentClosureAsync(long departmentId, long adminUserId,
+        DateTimeOffset startAt, DateTimeOffset endAt)
+    {
+        await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
+        ClinicDbContext dbContext = scope.ServiceProvider
+            .GetRequiredService<ClinicDbContext>();
+        dbContext.DepartmentClosures.Add(DepartmentClosure.Create(departmentId,
+            startAt, endAt, "اختبار إعادة جدولة جلسة باقة", adminUserId,
+            _fixture.Clock.GetUtcNow()));
+        await dbContext.SaveChangesAsync();
+    }
+
+    private async Task VerifyPackageAppointmentRetryAsync(SeededPaymentTargets seeded,
+        DateTimeOffset start, long actorUserId)
+    {
+        string connectionString;
+        await using (AsyncServiceScope scope = _fixture.Services.CreateAsyncScope())
+        {
+            ClinicDbContext current = scope.ServiceProvider
+                .GetRequiredService<ClinicDbContext>();
+            connectionString = current.Database.GetConnectionString() ??
+                throw new InvalidOperationException("Missing test connection string.");
+        }
+
+        ThrowOnceOnPackageReservationInterceptor interceptor = new();
+        DbContextOptions<ClinicDbContext> options =
+            new DbContextOptionsBuilder<ClinicDbContext>()
+                .UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure(
+                    2, TimeSpan.Zero, null))
+                .AddInterceptors(interceptor).Options;
+        await using ClinicDbContext dbContext = new(options);
+        AdjustableTimeProvider clock = new();
+        clock.SetUtcNow(start);
+        Clinic.Infrastructure.Appointments.AppointmentService service = new(dbContext, clock);
+        AppointmentInput input = new(seeded.PatientId, seeded.DepartmentId,
+            start.AddHours(6), [new AppointmentLineInput(seeded.ServiceId,
+                seeded.DoctorId, 1, [])], null, seeded.PatientPackageId, Guid.NewGuid());
+
+        Result<AppointmentModel> created = await service.CreateAsync(actorUserId, input,
+            CancellationToken.None);
+
+        Assert.True(created.IsSuccess, created.IsFailure ? created.Error.Description : null);
+        Assert.True(interceptor.WasTriggered);
+        Result released = await service.MarkNoShowAsync(actorUserId, created.Value.Id,
+            Convert.FromBase64String(created.Value.RowVersion), CancellationToken.None);
+        Assert.True(released.IsSuccess);
     }
 
     private static async Task<SecretaryResponse> CreateSecretaryAsync(HttpClient admin)
@@ -407,6 +712,22 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         HttpClient client, string uri, TRequest request)
     {
         using HttpResponseMessage response = await PostAsync(client, uri, request);
+        string body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.IsSuccessStatusCode, $"{response.StatusCode}: {body}");
+        return await response.Content.ReadFromJsonAsync<TResponse>() ??
+            throw new InvalidOperationException("Empty response.");
+    }
+
+    private static async Task<TResponse> PutAndReadAsync<TRequest, TResponse>(
+        HttpClient client, string uri, TRequest request)
+    {
+        CsrfResponse? csrf = await client.GetFromJsonAsync<CsrfResponse>("/api/auth/csrf");
+        using HttpRequestMessage message = new(HttpMethod.Put, uri)
+        {
+            Content = JsonContent.Create(request)
+        };
+        message.Headers.Add("X-XSRF-TOKEN", csrf?.Token);
+        using HttpResponseMessage response = await client.SendAsync(message);
         string body = await response.Content.ReadAsStringAsync();
         Assert.True(response.IsSuccessStatusCode, $"{response.StatusCode}: {body}");
         return await response.Content.ReadFromJsonAsync<TResponse>() ??
@@ -468,12 +789,43 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
     private sealed record PaymentMethodAllocationRequest(long PaymentMethodId,
         decimal Amount, string? ReferenceNumber);
     private sealed record PostPaymentRequest(IReadOnlyCollection<long> AppointmentIds,
-        IReadOnlyCollection<PaymentMethodAllocationRequest> MethodAllocations, string? Note);
+        IReadOnlyCollection<PaymentMethodAllocationRequest> MethodAllocations, string? Note,
+        IReadOnlyCollection<long>? PatientPackageIds = null);
     private sealed record AppointmentPaymentAllocationResponse(long AppointmentId,
         decimal Amount);
+    private sealed record PackagePaymentAllocationResponse(long PatientPackageId,
+        string PackageName, decimal Amount);
+    private sealed record PatientPackagePaymentReferenceResponse(long PaymentId,
+        string TransactionNumber, DateTimeOffset CollectedAt);
+    private sealed record PatientPackagePaymentResponse(
+        PatientPackagePaymentStatus PaymentStatus,
+        PatientPackagePaymentReferenceResponse? Payment, string RowVersion);
+    private sealed record ExtendPatientPackageRequest(
+        PatientPackageExtensionType ExtensionType, DateTimeOffset NewDeadline,
+        string Reason, string RowVersion);
+    private sealed record PackageBookingOptionsResponse(bool CanBook,
+        IReadOnlyCollection<PackageBookingOptionServiceResponse> Services);
+    private sealed record PackageBookingOptionServiceResponse(long ServiceId,
+        int AvailableSessions, bool CanBook, string? UnavailabilityReason);
+    private sealed record CreatePackageAppointmentRequest(long PatientId, long DepartmentId,
+        DateTimeOffset StartAt, IReadOnlyCollection<PackageAppointmentLineRequest> Services,
+        long PatientPackageId);
+    private sealed record UpdatePackageAppointmentRequest(long PatientId, long DepartmentId,
+        DateTimeOffset StartAt, IReadOnlyCollection<PackageAppointmentLineRequest> Services,
+        string RowVersion, long PatientPackageId);
+    private sealed record PackageAppointmentLineRequest(long ServiceId, long DoctorId,
+        int Quantity, IReadOnlyCollection<long> OptionalDeviceIds);
+    private sealed record PackageSessionBookingResponse(PackageSessionBookingStatus Status);
+    private sealed record PackageAppointmentServiceResponse(
+        PackageSessionBookingResponse? PackageSessionBooking);
+    private sealed record PackageAppointmentResponse(long Id, AppointmentStatus Status,
+        PaymentStatus PaymentStatus, decimal NetAmount, decimal PackageCoveredAmount,
+        string RowVersion, IReadOnlyCollection<PackageAppointmentServiceResponse> Services);
+    private sealed record AppointmentStateRequest(string RowVersion);
     private sealed record PaymentResponse(long Id, string TransactionNumber,
         decimal TotalAmount, PaymentRecordStatus Status,
-        IReadOnlyCollection<AppointmentPaymentAllocationResponse> AppointmentAllocations);
+        IReadOnlyCollection<AppointmentPaymentAllocationResponse> AppointmentAllocations,
+        IReadOnlyCollection<PackagePaymentAllocationResponse> PackageAllocations);
     private sealed record ShiftSummaryResponse(decimal CashCollected,
         decimal CashRefunded, decimal CashNet, decimal ElectronicCollected,
         decimal TotalCollected, decimal? CurrentExpectedCash,
@@ -502,4 +854,28 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
     private sealed record LoginRequest(string UserName, string Password);
     private sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
     private sealed record CsrfResponse(string Token);
+    private sealed record SeededPaymentTargets(long[] AppointmentIds,
+        long PatientPackageId, long ConcurrentPatientPackageId, long PatientId,
+        long DepartmentId, long ServiceId, long SecondServiceId, long DoctorId,
+        long AdminUserId);
+
+    private sealed class ThrowOnceOnPackageReservationInterceptor : SaveChangesInterceptor
+    {
+        public bool WasTriggered { get; private set; }
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData, InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            if (!WasTriggered && eventData.Context is not null &&
+                eventData.Context.ChangeTracker.Entries<PackageSessionBooking>()
+                    .Any(item => item.State == EntityState.Added))
+            {
+                WasTriggered = true;
+                throw new TimeoutException("Transient package reservation failure.");
+            }
+
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
+        }
+    }
 }

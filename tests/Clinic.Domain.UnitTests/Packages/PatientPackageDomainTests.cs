@@ -1,6 +1,7 @@
 using System.Reflection;
 using Clinic.Domain.Catalog;
 using Clinic.Domain.Common;
+using Clinic.Domain.Appointments;
 using Clinic.Domain.Packages;
 using Clinic.Domain.Patients;
 
@@ -40,6 +41,34 @@ public sealed class PatientPackageDomainTests
         Assert.Null(purchase.ActivationDeadlineAt);
         Assert.Null(purchase.FirstUsedAt);
         Assert.Null(purchase.ExpiresAt);
+    }
+
+    [Fact]
+    public void FullPaymentStartsActivationWindowExactlyOnce()
+    {
+        (Patient patient, Package package) = CreateGraph(500m, 2);
+        PatientPackage purchase = PatientPackage.Register(patient, package, Guid.NewGuid(),
+            new string('P', 64), 7, Now);
+
+        purchase.RecordFullPayment(500m, Now.AddHours(1));
+
+        Assert.Equal(PatientPackagePaymentStatus.Paid, purchase.PaymentStatus);
+        Assert.Equal(Now.AddHours(1), purchase.ActivationWindowStartedAt);
+        Assert.Equal(Now.AddHours(1).AddDays(14), purchase.ActivationDeadlineAt);
+        Assert.Throws<DomainException>(() =>
+            purchase.RecordFullPayment(500m, Now.AddHours(2)));
+    }
+
+    [Fact]
+    public void FullPaymentRequiresExactSnapshotPrice()
+    {
+        (Patient patient, Package package) = CreateGraph(500m, 2);
+        PatientPackage purchase = PatientPackage.Register(patient, package, Guid.NewGuid(),
+            new string('Q', 64), 7, Now);
+
+        Assert.Throws<DomainException>(() => purchase.RecordFullPayment(499m, Now));
+        Assert.Equal(PatientPackagePaymentStatus.Unpaid, purchase.PaymentStatus);
+        Assert.Null(purchase.ActivationWindowStartedAt);
     }
 
     [Fact]
@@ -109,6 +138,53 @@ public sealed class PatientPackageDomainTests
             Now.AddMinutes(1)));
 
         Assert.Contains("36500", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SessionCanBeReservedReleasedAndConsumedWithHistoricalLinks()
+    {
+        (Patient patient, Package package) = CreateGraph(0m, 1);
+        PatientPackage purchase = PatientPackage.Register(patient, package, Guid.NewGuid(),
+            new string('S', 64), 7, Now);
+        Set(purchase, nameof(purchase.Id), 8L);
+        PatientPackageService purchasedService = purchase.Services.Single();
+        Set(purchasedService, nameof(purchasedService.Id), 9L);
+        Set(purchasedService, nameof(purchasedService.PatientPackageId), 8L);
+        PackageSession session = purchasedService.Sessions.Single();
+        Set(session, nameof(session.Id), 10L);
+        Set(session, nameof(session.PatientPackageId), 8L);
+        Appointment appointment = Appointment.Create(patient.Id, 11, package.DepartmentId,
+            Now.AddHours(1), false, 7, Now);
+        AppointmentService line = appointment.AddService(3, 12, 30, 1, 150m, []);
+        Set(appointment, nameof(appointment.Id), 13L);
+        Set(line, nameof(line.Id), 14L);
+        Set(line, nameof(line.AppointmentId), 13L);
+        appointment.CoverByPackage(purchase, new Dictionary<long, decimal> { [3] = 150m },
+            Guid.NewGuid(), new string('R', 64));
+
+        PackageSessionBooking first = session.Reserve(appointment, line, Now);
+        first.Release(Now.AddMinutes(1));
+        PackageSessionBooking second = session.Reserve(appointment, line, Now.AddMinutes(2));
+        second.Consume(Now.AddMinutes(3));
+
+        Assert.Equal(PackageSessionBookingStatus.Released, first.Status);
+        Assert.Equal(PackageSessionBookingStatus.Consumed, second.Status);
+        Assert.Equal(PackageSessionStatus.Consumed, session.Status);
+    }
+
+    [Fact]
+    public void FirstUseStartsAtVisitTimeAndActivationDeadlineIsExclusive()
+    {
+        (Patient patient, Package package) = CreateGraph(0m, 1);
+        PatientPackage purchase = PatientPackage.Register(patient, package, Guid.NewGuid(),
+            new string('U', 64), 7, Now);
+
+        Assert.Throws<DomainException>(() =>
+            purchase.RecordFirstUse(Now.AddDays(14)));
+        purchase.RecordFirstUse(Now.AddDays(2));
+
+        Assert.Equal(Now.AddDays(2), purchase.FirstUsedAt);
+        Assert.Equal(Now.AddDays(92), purchase.ExpiresAt);
     }
 
     private static (Patient Patient, Package Package) CreateGraph(decimal basePrice,

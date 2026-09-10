@@ -1,5 +1,6 @@
 using Clinic.Domain.Common;
 using Clinic.Domain.Patients;
+using Clinic.Domain.Packages;
 
 namespace Clinic.Domain.Cashier;
 
@@ -7,6 +8,7 @@ public sealed class Payment : AggregateRoot
 {
     private readonly List<PaymentMethodAllocation> _methodAllocations = [];
     private readonly List<AppointmentPaymentAllocation> _appointmentAllocations = [];
+    private readonly List<PackagePaymentAllocation> _packageAllocations = [];
 
     private Payment()
     {
@@ -74,12 +76,16 @@ public sealed class Payment : AggregateRoot
     public IReadOnlyCollection<AppointmentPaymentAllocation> AppointmentAllocations =>
         _appointmentAllocations;
 
+    public IReadOnlyCollection<PackagePaymentAllocation> PackageAllocations =>
+        _packageAllocations;
+
     public static Payment Create(string transactionNumber, Guid idempotencyKey,
         string requestFingerprint, long shiftId, long patientId,
         long collectedByUserId, DateTimeOffset collectedAt, string? note,
         IReadOnlyCollection<(long PaymentMethodId, bool IsCash, decimal Amount,
             string? ReferenceNumber)> methods,
-        IReadOnlyCollection<(long AppointmentId, decimal Amount)> appointments)
+        IReadOnlyCollection<(long AppointmentId, decimal Amount)> appointments,
+        IReadOnlyCollection<(PatientPackage PatientPackage, decimal Amount)> packages)
     {
         if (methods.Count == 0 || methods.Count > 4 ||
             methods.Select(item => item.PaymentMethodId).Distinct().Count() != methods.Count)
@@ -87,7 +93,7 @@ public sealed class Payment : AggregateRoot
             throw new DomainException("وسائل الدفع غير صحيحة أو مكررة.");
         }
 
-        if (appointments.Count == 0 || appointments.Count > 20 ||
+        if (appointments.Count + packages.Count is < 1 or > 20 ||
             appointments.Select(item => item.AppointmentId).Distinct().Count() != appointments.Count)
         {
             throw new DomainException("الحجوزات غير صحيحة أو مكررة.");
@@ -101,18 +107,35 @@ public sealed class Payment : AggregateRoot
         payment._appointmentAllocations.AddRange(appointments.Select(item =>
             new AppointmentPaymentAllocation(payment, item.AppointmentId,
                 patientId, item.Amount)));
-
-        decimal methodTotal = payment._methodAllocations.Sum(item => item.Amount);
-        decimal appointmentTotal = payment._appointmentAllocations.Sum(item => item.Amount);
-        if (methodTotal != appointmentTotal)
+        if (packages.Select(item => item.PatientPackage.Id).Distinct().Count() != packages.Count)
         {
-            throw new DomainException("مجموع وسائل الدفع يجب أن يساوي قيمة الحجوزات.");
+            throw new DomainException("الباقات غير صحيحة أو مكررة.");
         }
 
-        CashierGuard.PositiveMoney(appointmentTotal, "إجمالي التحصيل");
-        payment.TotalAmount = appointmentTotal;
+        payment._packageAllocations.AddRange(packages.Select(item =>
+            new PackagePaymentAllocation(payment, item.PatientPackage, item.Amount)));
+
+        decimal methodTotal = payment._methodAllocations.Sum(item => item.Amount);
+        decimal targetTotal = payment._appointmentAllocations.Sum(item => item.Amount) +
+            payment._packageAllocations.Sum(item => item.Amount);
+        if (methodTotal != targetTotal)
+        {
+            throw new DomainException("مجموع وسائل الدفع يجب أن يساوي قيمة الحجوزات والباقات.");
+        }
+
+        CashierGuard.PositiveMoney(targetTotal, "إجمالي التحصيل");
+        payment.TotalAmount = targetTotal;
         return payment;
     }
+
+    public static Payment Create(string transactionNumber, Guid idempotencyKey,
+        string requestFingerprint, long shiftId, long patientId,
+        long collectedByUserId, DateTimeOffset collectedAt, string? note,
+        IReadOnlyCollection<(long PaymentMethodId, bool IsCash, decimal Amount,
+            string? ReferenceNumber)> methods,
+        IReadOnlyCollection<(long AppointmentId, decimal Amount)> appointments) =>
+        Create(transactionNumber, idempotencyKey, requestFingerprint, shiftId,
+            patientId, collectedByUserId, collectedAt, note, methods, appointments, []);
 
     public void RecordRefund(decimal totalRefunded)
     {

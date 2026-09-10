@@ -22,6 +22,7 @@ public sealed class PackageSessionConfiguration : IEntityTypeConfiguration<Packa
         });
 
         builder.HasKey(item => item.Id);
+        builder.HasAlternateKey(item => new { item.Id, item.PatientPackageId, item.ServiceId });
         builder.Property(item => item.UnitPriceSnapshot).HasPrecision(18, 2);
         builder.Property(item => item.Status).HasConversion<int>();
         builder.Property(item => item.ReservedAt).HasPrecision(0);

@@ -1,5 +1,6 @@
 using Clinic.Domain.Common;
 using Clinic.Domain.Catalog;
+using Clinic.Domain.Packages;
 using Clinic.Domain.Scheduling;
 
 namespace Clinic.Domain.Appointments;
@@ -58,8 +59,10 @@ public sealed class AppointmentService : Entity
     public decimal GrossAmount { get; private set; }
     public decimal DiscountAmount { get; private set; }
     public decimal NetAmount { get; private set; }
+    public decimal PackageCoveredAmount { get; private set; }
     public AppointmentServiceStatus Status { get; private set; }
     public byte[] RowVersion { get; private set; } = [];
+    public PackageSessionBooking? PackageSessionBooking { get; private set; }
     public IReadOnlyCollection<AppointmentDevice> Devices => _devices;
 
     internal void AddDevice(long serviceDeviceId, long deviceId)
@@ -77,6 +80,17 @@ public sealed class AppointmentService : Entity
     internal void Cancel() => Status = AppointmentServiceStatus.Cancelled;
     internal void Supersede() => Status = AppointmentServiceStatus.Superseded;
 
+    internal void CoverByPackage(decimal coveredAmount)
+    {
+        if (coveredAmount <= 0 || coveredAmount != GrossAmount)
+        {
+            throw new DomainException("قيمة تغطية الباقة لا تطابق قيمة الخدمة.");
+        }
+
+        PackageCoveredAmount = coveredAmount;
+        NetAmount = 0;
+    }
+
     internal void ChangeDoctorService(long doctorServiceId)
     {
         AppointmentGuard.PositiveId(doctorServiceId, "إسناد الطبيب");
@@ -86,4 +100,7 @@ public sealed class AppointmentService : Entity
         }
         DoctorServiceId = doctorServiceId;
     }
+
+    internal void AttachPackageBooking(PackageSessionBooking booking) =>
+        PackageSessionBooking = booking;
 }

@@ -26,6 +26,9 @@ public static class CashierErrors
     public static readonly ResultError AppointmentNotPayable = new(
         "cashier.appointment_not_payable",
         "أحد الحجوزات غير قابل للتحصيل أو تم دفعه بالفعل.");
+    public static readonly ResultError PatientPackageNotPayable = new(
+        "cashier.patient_package_not_payable",
+        "إحدى الباقات غير قابلة للتحصيل أو تم دفعها بالفعل.");
     public static readonly ResultError IdempotencyConflict = new(
         "cashier.idempotency_conflict",
         "استُخدم مفتاح منع التكرار سابقًا مع بيانات مختلفة.");

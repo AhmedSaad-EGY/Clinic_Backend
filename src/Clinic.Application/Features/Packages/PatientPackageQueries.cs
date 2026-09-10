@@ -10,6 +10,8 @@ public sealed record GetPatientPackageQuery(long PatientPackageId)
     : IQuery<PatientPackageModel>;
 public sealed record ListPackageSessionsQuery(long PatientPackageId)
     : IQuery<IReadOnlyCollection<PackageSessionModel>>;
+public sealed record GetPackageBookingOptionsQuery(long PatientPackageId,
+    DateTimeOffset StartAt) : IQuery<PackageBookingOptionsModel>;
 public sealed record SearchAdminPatientPackagesQuery(AdminPatientPackageFilter Filter)
     : IQuery<PatientPackagePage>;
 
@@ -67,4 +69,17 @@ public sealed class SearchAdminPatientPackagesQueryHandler
         ? Task.FromResult(Result.Failure<PatientPackagePage>(PackageErrors.Validation(
             "بيانات الصفحة غير صحيحة.")))
         : _service.SearchAdminAsync(query.Filter, cancellationToken);
+}
+
+public sealed class GetPackageBookingOptionsQueryHandler(
+    IPatientPackageQueryService service)
+    : IQueryHandler<GetPackageBookingOptionsQuery, PackageBookingOptionsModel>
+{
+    public Task<Result<PackageBookingOptionsModel>> Handle(
+        GetPackageBookingOptionsQuery query, CancellationToken cancellationToken) =>
+        query.PatientPackageId <= 0
+            ? Task.FromResult(Result.Failure<PackageBookingOptionsModel>(
+                PackageErrors.Validation("رقم باقة المريض غير صحيح.")))
+            : service.GetBookingOptionsAsync(query.PatientPackageId,
+                query.StartAt.ToUniversalTime(), cancellationToken);
 }

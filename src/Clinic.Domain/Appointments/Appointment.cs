@@ -1,5 +1,6 @@
 using Clinic.Domain.Common;
 using Clinic.Domain.Catalog;
+using Clinic.Domain.Packages;
 using Clinic.Domain.Patients;
 
 namespace Clinic.Domain.Appointments;
@@ -49,6 +50,11 @@ public sealed class Appointment : AggregateRoot
     public decimal SubtotalAmount { get; private set; }
     public decimal DiscountAmount { get; private set; }
     public decimal NetAmount { get; private set; }
+    public long? PatientPackageId { get; private set; }
+    public PatientPackage? PatientPackage { get; private set; }
+    public decimal PackageCoveredAmount { get; private set; }
+    public Guid? IdempotencyKey { get; private set; }
+    public string? RequestFingerprint { get; private set; }
     public long CreatedByUserId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public long? UpdatedByUserId { get; private set; }
@@ -93,6 +99,39 @@ public sealed class Appointment : AggregateRoot
         return service;
     }
 
+    public void CoverByPackage(PatientPackage patientPackage,
+        IReadOnlyDictionary<long, decimal> servicePrices, Guid idempotencyKey,
+        string requestFingerprint)
+    {
+        ArgumentNullException.ThrowIfNull(patientPackage);
+        if (patientPackage.PatientId != PatientId ||
+            patientPackage.DepartmentId != DepartmentId ||
+            patientPackage.PaymentStatus == PatientPackagePaymentStatus.Unpaid ||
+            patientPackage.Status != PatientPackageStatus.Active ||
+            idempotencyKey == Guid.Empty || requestFingerprint.Length != 64 ||
+            _services.Count == 0 || _services.Any(line => line.Quantity != 1 ||
+                !servicePrices.TryGetValue(line.ServiceId, out decimal price) || price <= 0))
+        {
+            throw new DomainException("الحجز لا يطابق الباقة المحددة.");
+        }
+
+        PatientPackage = patientPackage;
+        PatientPackageId = patientPackage.Id;
+        IdempotencyKey = idempotencyKey;
+        RequestFingerprint = requestFingerprint;
+        foreach (AppointmentService line in _services)
+        {
+            line.CoverByPackage(servicePrices[line.ServiceId]);
+        }
+
+        PaymentStatus = PaymentStatus.CoveredByPackage;
+        if (Status == AppointmentStatus.Booked)
+        {
+            Status = AppointmentStatus.Confirmed;
+        }
+        Recalculate();
+    }
+
     public void ReplaceSchedule(DateTimeOffset startAt, long updatedByUserId,
         DateTimeOffset updatedAt)
     {
@@ -105,7 +144,7 @@ public sealed class Appointment : AggregateRoot
         }
 
         StartAt = EndAt = startAt;
-        SubtotalAmount = DiscountAmount = NetAmount = 0;
+        SubtotalAmount = DiscountAmount = NetAmount = PackageCoveredAmount = 0;
         UpdatedByUserId = updatedByUserId;
         UpdatedAt = updatedAt;
     }
@@ -274,6 +313,7 @@ public sealed class Appointment : AggregateRoot
         EndAt = active.Length == 0 ? StartAt : active.Max(item => item.SegmentEndAt);
         SubtotalAmount = active.Sum(item => item.GrossAmount);
         DiscountAmount = active.Sum(item => item.DiscountAmount);
+        PackageCoveredAmount = active.Sum(item => item.PackageCoveredAmount);
         NetAmount = active.Sum(item => item.NetAmount);
     }
 
@@ -300,7 +340,8 @@ public sealed class Appointment : AggregateRoot
 
     private void EnsureEditable()
     {
-        if (PaymentStatus != PaymentStatus.Unpaid ||
+        if (PaymentStatus is not PaymentStatus.Unpaid and
+                not PaymentStatus.CoveredByPackage ||
             Status is AppointmentStatus.Cancelled or AppointmentStatus.Completed or AppointmentStatus.NoShow)
         {
             throw new DomainException("لا يمكن تعديل هذا الحجز.");

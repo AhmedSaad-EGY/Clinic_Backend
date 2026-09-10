@@ -108,6 +108,7 @@ public static class ControllerResultExtensions
         "cashier.concurrency_conflict" => StatusCodes.Status409Conflict,
         "cashier.reconciliation_stale" => StatusCodes.Status409Conflict,
         "cashier.appointment_not_payable" => StatusCodes.Status409Conflict,
+        "cashier.patient_package_not_payable" => StatusCodes.Status409Conflict,
         "cashier.idempotency_conflict" => StatusCodes.Status409Conflict,
         "cashier.approval_required" => StatusCodes.Status409Conflict,
         "clinical.not_authenticated" => StatusCodes.Status401Unauthorized,

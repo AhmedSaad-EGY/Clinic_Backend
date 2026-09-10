@@ -73,7 +73,8 @@ public sealed class ApprovalRequestService(
                     cancellationToken);
                 if (appointment.PaymentStatus == PaymentStatus.Paid && payment is null ||
                     appointment.PaymentStatus != PaymentStatus.Paid &&
-                    appointment.PaymentStatus != PaymentStatus.Unpaid)
+                    appointment.PaymentStatus != PaymentStatus.Unpaid &&
+                    appointment.PaymentStatus != PaymentStatus.CoveredByPackage)
                 {
                     return Result.Failure<ApprovalRequestModel>(CashierErrors.Conflict(
                         "الحالة المالية للحجز لا تسمح بطلب الإلغاء."));
@@ -222,6 +223,11 @@ public sealed class ApprovalRequestService(
                     }
 
                     request.Approve(actorUserId, now, reason);
+                    if (appointment.PatientPackageId.HasValue)
+                    {
+                        await PackageSessionLifecycle.ReleaseAsync(dbContext,
+                            appointment.Id, actorUserId, now, cancellationToken);
+                    }
                     appointment.CancelAfterApproval(actorUserId, now, reason);
                     AppointmentInfrastructureSupport.AddAudit(dbContext, actorUserId,
                         "appointments.cancellation_approved", appointment.Id, now,
@@ -259,7 +265,8 @@ public sealed class ApprovalRequestService(
     {
         if (!request.OriginalPaymentId.HasValue)
         {
-            return appointment.PaymentStatus == PaymentStatus.Unpaid;
+            return appointment.PaymentStatus is PaymentStatus.Unpaid or
+                PaymentStatus.CoveredByPackage;
         }
 
         if (appointment.PaymentStatus != PaymentStatus.Paid)
@@ -296,10 +303,17 @@ public sealed class ApprovalRequestService(
     private async Task AcquireTargetLocksAsync(ApprovalTarget target,
         bool includeRequest, CancellationToken cancellationToken)
     {
+        await TransactionalResourceLock.AcquireDepartmentAsync(dbContext,
+            target.DepartmentId, cancellationToken);
         await TransactionalResourceLock.AcquirePatientAsync(dbContext,
             target.PatientId, cancellationToken);
         await TransactionalResourceLock.AcquireAppointmentAsync(dbContext,
             target.AppointmentId, cancellationToken);
+        if (target.PatientPackageId.HasValue)
+        {
+            await TransactionalResourceLock.AcquirePatientPackageAsync(dbContext,
+                target.PatientPackageId.Value, cancellationToken);
+        }
         if (target.PaymentId.HasValue)
         {
             await TransactionalResourceLock.AcquirePaymentAsync(dbContext,
@@ -317,6 +331,7 @@ public sealed class ApprovalRequestService(
         CancellationToken cancellationToken) => dbContext.Appointments.AsNoTracking()
         .Where(item => item.Id == appointmentId)
         .Select(item => new ApprovalTarget(null, item.Id, item.PatientId,
+            item.DepartmentId, item.PatientPackageId,
             dbContext.AppointmentPaymentAllocations
                 .Where(allocation => allocation.AppointmentId == item.Id)
                 .Select(allocation => (long?)allocation.PaymentId).SingleOrDefault()))
@@ -329,7 +344,8 @@ public sealed class ApprovalRequestService(
              on request.AppointmentId equals appointment.Id
          where request.Id == requestId
          select new ApprovalTarget(request.Id, appointment.Id,
-             appointment.PatientId, request.OriginalPaymentId))
+             appointment.PatientId, appointment.DepartmentId,
+             appointment.PatientPackageId, request.OriginalPaymentId))
         .SingleOrDefaultAsync(cancellationToken);
 
     private async Task<ApprovalRequestModel> MapOneAsync(long requestId,
@@ -399,7 +415,7 @@ public sealed class ApprovalRequestService(
     }
 
     private sealed record ApprovalTarget(long? RequestId, long AppointmentId,
-        long PatientId, long? PaymentId);
+        long PatientId, long DepartmentId, long? PatientPackageId, long? PaymentId);
     private sealed record PaymentTarget(long PaymentId, decimal Amount);
     private sealed record ApprovalProjection(ApprovalRequest Request, long PatientId,
         string PatientName, string RequesterName, string? ReviewerName,

@@ -4,6 +4,7 @@ using Clinic.Application.Abstractions.Packages;
 using Clinic.Domain.Auditing;
 using Clinic.Domain.Packages;
 using Clinic.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Infrastructure.Packages;
 
@@ -57,6 +58,14 @@ internal static class PatientPackageInfrastructureSupport
         session.UnitPriceSnapshot, session.Status, session.ReservedAt, session.ConsumedAt,
         Convert.ToBase64String(session.RowVersion));
 
+    public static Task<PatientPackagePaymentReferenceModel?> PaymentReferenceAsync(
+        ClinicDbContext dbContext, long patientPackageId, CancellationToken cancellationToken) =>
+        dbContext.PackagePaymentAllocations.AsNoTracking()
+            .Where(item => item.PatientPackageId == patientPackageId)
+            .Select(item => new PatientPackagePaymentReferenceModel(item.PaymentId,
+                item.Payment.TransactionNumber, item.Payment.CollectedAt))
+            .SingleOrDefaultAsync(cancellationToken);
+
     public static void AddAudit(ClinicDbContext dbContext, long actorUserId, string action,
         long patientPackageId, DateTimeOffset occurredAt, object? details = null) =>
         dbContext.AuditLogs.Add(AuditLog.CreateForUser(actorUserId, action,
@@ -68,4 +77,5 @@ internal static class PatientPackageAuditActions
 {
     public const string Registered = "packages.patient_package.registered";
     public const string Extended = "packages.patient_package.extended";
+    public const string Paid = "packages.patient_package.paid";
 }

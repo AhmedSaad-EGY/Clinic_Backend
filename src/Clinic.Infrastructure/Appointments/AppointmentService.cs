@@ -1,4 +1,6 @@
 using System.Data;
+using System.Security.Cryptography;
+using System.Text;
 using Clinic.Application.Abstractions.Appointments;
 using Clinic.Application.Common;
 using Clinic.Domain.Appointments;
@@ -7,6 +9,7 @@ using Clinic.Domain.Catalog;
 using Clinic.Domain.ClinicalRecords;
 using Clinic.Domain.Common;
 using Clinic.Domain.Scheduling;
+using Clinic.Domain.Packages;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -29,7 +32,7 @@ public sealed class AppointmentService : IAppointmentService
         CancellationToken cancellationToken)
     {
         Result<PreparedAppointment> prepared = await PrepareAsync(input, null,
-            actorUserId, cancellationToken);
+            actorUserId, excludedAppointmentId, cancellationToken);
         if (prepared.IsFailure)
         {
             return Result.Failure<AppointmentAvailability>(prepared.Error);
@@ -55,10 +58,47 @@ public sealed class AppointmentService : IAppointmentService
         {
             return await strategy.ExecuteAsync(async () =>
             {
+                _dbContext.ChangeTracker.Clear();
                 await using IDbContextTransaction transaction = await _dbContext.Database
                     .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+                string? fingerprint = null;
+                if (input.PatientPackageId.HasValue)
+                {
+                    if (input.IdempotencyKey is not Guid key || key == Guid.Empty)
+                    {
+                        return Result.Failure<AppointmentModel>(AppointmentErrors.Validation(
+                            "مفتاح منع تكرار الطلب مطلوب لحجز الباقة."));
+                    }
+
+                    fingerprint = Fingerprint(actorUserId, input);
+                    await TransactionalResourceLock.AcquirePackageAppointmentRequestAsync(
+                        _dbContext, key, cancellationToken);
+                    Appointment? replay = await AppointmentInfrastructureSupport.Details(
+                        _dbContext.Appointments).SingleOrDefaultAsync(item =>
+                            item.IdempotencyKey == key, cancellationToken);
+                    if (replay is not null)
+                    {
+                        if (!string.Equals(replay.RequestFingerprint, fingerprint,
+                            StringComparison.Ordinal))
+                        {
+                            return Result.Failure<AppointmentModel>(
+                                AppointmentErrors.ConcurrencyConflict);
+                        }
+
+                        await transaction.CommitAsync(cancellationToken);
+                        return Result.Success(AppointmentInfrastructureSupport.Map(replay)
+                            with { WasReplayed = true });
+                    }
+
+                    await TransactionalResourceLock.AcquireDepartmentAsync(_dbContext,
+                        input.DepartmentId, cancellationToken);
+                    await TransactionalResourceLock.AcquirePatientAsync(_dbContext,
+                        input.PatientId, cancellationToken);
+                    await TransactionalResourceLock.AcquirePatientPackageAsync(_dbContext,
+                        input.PatientPackageId.Value, cancellationToken);
+                }
                 Result<PreparedAppointment> prepared = await PrepareAsync(input, null,
-                    actorUserId, cancellationToken);
+                    actorUserId, null, cancellationToken);
                 if (prepared.IsFailure)
                 {
                     await transaction.RollbackAsync(cancellationToken);
@@ -87,6 +127,12 @@ public sealed class AppointmentService : IAppointmentService
                 Appointment appointment = prepared.Value.Appointment;
                 _dbContext.Appointments.Add(appointment);
                 await _dbContext.SaveChangesAsync(cancellationToken);
+                if (prepared.Value.PatientPackage is PatientPackage patientPackage)
+                {
+                    PackageSessionLifecycle.Reserve(_dbContext, appointment, patientPackage,
+                        actorUserId, _timeProvider.GetUtcNow());
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                }
                 if (followUpResult.Value is FollowUp followUp)
                 {
                     DateTimeOffset now = _timeProvider.GetUtcNow();
@@ -105,6 +151,11 @@ public sealed class AppointmentService : IAppointmentService
                 return Result.Success(AppointmentInfrastructureSupport.Map(appointment));
             });
         }
+        catch (DomainException exception)
+        {
+            return Result.Failure<AppointmentModel>(
+                AppointmentErrors.Validation(exception.Message));
+        }
         catch (DbUpdateException exception)
         {
             return Result.Failure<AppointmentModel>(
@@ -121,6 +172,7 @@ public sealed class AppointmentService : IAppointmentService
         {
             return await strategy.ExecuteAsync(async () =>
             {
+                _dbContext.ChangeTracker.Clear();
                 await using IDbContextTransaction transaction = await _dbContext.Database
                     .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
                 Appointment? appointment = await AppointmentInfrastructureSupport.Details(
@@ -137,6 +189,17 @@ public sealed class AppointmentService : IAppointmentService
                         "لا يمكن تغيير المريض داخل الحجز. ألغِ الحجز وأنشئ حجزًا جديدًا."));
                 }
 
+                if (appointment.PatientPackageId != input.PatientPackageId ||
+                    appointment.PatientPackageId.HasValue &&
+                    appointment.Services.Where(item =>
+                        item.Status == AppointmentServiceStatus.Scheduled)
+                        .Select(item => item.ServiceId).Order().SequenceEqual(
+                            input.Services.Select(item => item.ServiceId).Order()) == false)
+                {
+                    return Result.Failure<AppointmentModel>(AppointmentErrors.Validation(
+                        "لا يمكن تغيير الباقة أو خدماتها عند إعادة الجدولة."));
+                }
+
                 if (appointment.DepartmentId != input.DepartmentId)
                 {
                     return Result.Failure<AppointmentModel>(AppointmentErrors.Validation(
@@ -149,12 +212,20 @@ public sealed class AppointmentService : IAppointmentService
                     return Result.Failure<AppointmentModel>(AppointmentErrors.ConcurrencyConflict);
                 }
 
+                if (await _dbContext.ApprovalRequests.AnyAsync(item =>
+                    item.AppointmentId == appointmentId &&
+                    item.Status == Domain.Approvals.ApprovalRequestStatus.Pending,
+                    cancellationToken))
+                {
+                    return Result.Failure<AppointmentModel>(AppointmentErrors.NotEditable);
+                }
+
                 Dictionary<long, decimal> oldPrices = appointment.Services
                     .Where(item => item.Status == AppointmentServiceStatus.Scheduled)
                     .GroupBy(item => item.ServiceId).ToDictionary(group => group.Key,
                         group => group.First().UnitPrice);
                 Result<PreparedAppointment> prepared = await PrepareAsync(input, oldPrices,
-                    actorUserId, cancellationToken);
+                    actorUserId, appointmentId, cancellationToken);
                 if (prepared.IsFailure)
                 {
                     return Result.Failure<AppointmentModel>(prepared.Error);
@@ -180,12 +251,26 @@ public sealed class AppointmentService : IAppointmentService
                         line.Devices.Select(item => (item.Id, item.DeviceId)).ToArray());
                 }
 
+                if (prepared.Value.PatientPackage is PatientPackage patientPackage)
+                {
+                    appointment.CoverByPackage(patientPackage,
+                        PackageSessionLifecycle.Prices(patientPackage,
+                            input.Services.Select(item => item.ServiceId)),
+                        appointment.IdempotencyKey!.Value,
+                        appointment.RequestFingerprint!);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await PackageSessionLifecycle.ReplaceAsync(_dbContext, appointment,
+                        patientPackage, actorUserId, _timeProvider.GetUtcNow(),
+                        cancellationToken);
+                }
+
                 if (prepared.Value.Appointment.Status == AppointmentStatus.Suspended &&
                     appointment.Status != AppointmentStatus.Suspended)
                 {
                     appointment.Suspend(actorUserId, _timeProvider.GetUtcNow());
                 }
-                else if (prepared.Value.Appointment.Status == AppointmentStatus.Booked &&
+                else if (prepared.Value.Appointment.Status is AppointmentStatus.Booked or
+                        AppointmentStatus.Confirmed &&
                     appointment.Status == AppointmentStatus.Suspended)
                 {
                     appointment.Reactivate(actorUserId, _timeProvider.GetUtcNow());
@@ -337,6 +422,26 @@ public sealed class AppointmentService : IAppointmentService
                     cancellationToken);
                 if (stopped || await ConflictReasonAsync(appointment, appointment.Id,
                     cancellationToken, forceCheck: true) is not null) continue;
+                if (appointment.PatientPackageId.HasValue)
+                {
+                    try
+                    {
+                        _ = await PackageSessionLifecycle.LoadUsableAsync(_dbContext,
+                            appointment, appointment.PatientPackageId.Value,
+                            cancellationToken);
+                    }
+                    catch (DomainException)
+                    {
+                        continue;
+                    }
+
+                    int reservations = await _dbContext.PackageSessionBookings.CountAsync(
+                        item => item.AppointmentId == appointment.Id &&
+                            item.Status == PackageSessionBookingStatus.Reserved,
+                        cancellationToken);
+                    if (reservations != appointment.Services.Count(item =>
+                        item.Status == AppointmentServiceStatus.Scheduled)) continue;
+                }
 
                 DateTimeOffset now = _timeProvider.GetUtcNow();
                 if (actorUserId.HasValue)
@@ -428,6 +533,7 @@ public sealed class AppointmentService : IAppointmentService
 
     private async Task<Result<PreparedAppointment>> PrepareAsync(AppointmentInput input,
         Dictionary<long, decimal>? preservedPrices, long actorUserId,
+        long? existingAppointmentId,
         CancellationToken cancellationToken)
     {
         DateTimeOffset startAt = input.StartAt.ToUniversalTime();
@@ -473,6 +579,16 @@ public sealed class AppointmentService : IAppointmentService
         Appointment appointment = Appointment.Create(input.PatientId, room.Id,
             input.DepartmentId, startAt, suspended: false, actorUserId,
             _timeProvider.GetUtcNow());
+        PatientPackage? patientPackage = null;
+        IReadOnlyDictionary<long, decimal>? packagePrices = null;
+        if (input.PatientPackageId.HasValue)
+        {
+            patientPackage = await PackageSessionLifecycle.LoadUsableAsync(_dbContext,
+                appointment, input.PatientPackageId.Value, cancellationToken, serviceIds);
+            await PackageSessionLifecycle.EnsureBalanceAsync(_dbContext, patientPackage,
+                serviceIds, existingAppointmentId, cancellationToken);
+            packagePrices = PackageSessionLifecycle.Prices(patientPackage, serviceIds);
+        }
         List<PreparedLine> lines = [];
         foreach (AppointmentLineInput inputLine in input.Services)
         {
@@ -496,10 +612,17 @@ public sealed class AppointmentService : IAppointmentService
             decimal unitPrice = preservedPrices is not null &&
                 preservedPrices.TryGetValue(service.Id, out decimal preservedPrice)
                 ? preservedPrice
-                : service.CurrentUnitPrice;
+                : packagePrices?.GetValueOrDefault(service.Id) ?? service.CurrentUnitPrice;
             appointment.AddService(service.Id, doctorService.Id, service.DurationMinutes,
                 inputLine.Quantity, unitPrice, devices.Select(item => (item.Id, item.DeviceId)).ToArray());
             lines.Add(new PreparedLine(service, doctorService, inputLine.Quantity, unitPrice, devices));
+        }
+
+        if (patientPackage is not null)
+        {
+            appointment.CoverByPackage(patientPackage, packagePrices!,
+                input.IdempotencyKey ?? Guid.NewGuid(), input.IdempotencyKey.HasValue
+                    ? Fingerprint(actorUserId, input) : new string('0', 64));
         }
 
         bool stopped = await _dbContext.DepartmentClosures.AsNoTracking().AnyAsync(item =>
@@ -507,7 +630,7 @@ public sealed class AppointmentService : IAppointmentService
             item.StartAt < appointment.EndAt && appointment.StartAt < item.EndAt,
             cancellationToken);
         if (stopped) appointment.Suspend(actorUserId, _timeProvider.GetUtcNow());
-        return Result.Success(new PreparedAppointment(appointment, room, lines));
+        return Result.Success(new PreparedAppointment(appointment, room, lines, patientPackage));
     }
 
     private async Task<string?> ConflictReasonAsync(Appointment appointment,
@@ -684,6 +807,11 @@ public sealed class AppointmentService : IAppointmentService
             prepared.Appointment.DepartmentId, cancellationToken);
         await TransactionalResourceLock.AcquirePatientAsync(_dbContext,
             prepared.Appointment.PatientId, cancellationToken);
+        if (prepared.Appointment.PatientPackageId.HasValue)
+        {
+            await TransactionalResourceLock.AcquirePatientPackageAsync(_dbContext,
+                prepared.Appointment.PatientPackageId.Value, cancellationToken);
+        }
         await TransactionalResourceLock.AcquireRoomAsync(_dbContext, prepared.Room.Id,
             cancellationToken);
         foreach (long doctorId in prepared.Lines.Select(item => item.DoctorService.DoctorId).Distinct().Order())
@@ -732,6 +860,11 @@ public sealed class AppointmentService : IAppointmentService
             appointment.DepartmentId, cancellationToken);
         await TransactionalResourceLock.AcquirePatientAsync(_dbContext,
             appointment.PatientId, cancellationToken);
+        if (appointment.PatientPackageId.HasValue)
+        {
+            await TransactionalResourceLock.AcquirePatientPackageAsync(_dbContext,
+                appointment.PatientPackageId.Value, cancellationToken);
+        }
         await TransactionalResourceLock.AcquireRoomAsync(_dbContext, appointment.RoomId,
             cancellationToken);
         foreach (long doctorId in appointment.Services
@@ -748,17 +881,55 @@ public sealed class AppointmentService : IAppointmentService
         byte[] rowVersion, string action, Action<Appointment> mutation, string? reason,
         CancellationToken cancellationToken)
     {
-        Appointment? appointment = await _dbContext.Appointments.Include(item => item.Services)
-            .SingleOrDefaultAsync(item => item.Id == appointmentId, cancellationToken);
-        if (appointment is null) return Result.Failure(AppointmentErrors.NotFound);
-        if (!AppointmentInfrastructureSupport.MatchesVersion(appointment.RowVersion, rowVersion))
+        IExecutionStrategy strategy = _dbContext.Database.CreateExecutionStrategy();
+        try
+        {
+            return await strategy.ExecuteAsync(async () =>
+            {
+                _dbContext.ChangeTracker.Clear();
+                await using IDbContextTransaction transaction = await _dbContext.Database
+                    .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+                Appointment? appointment = await AppointmentInfrastructureSupport.Details(
+                    _dbContext.Appointments).SingleOrDefaultAsync(item =>
+                        item.Id == appointmentId, cancellationToken);
+                if (appointment is null) return Result.Failure(AppointmentErrors.NotFound);
+                await AcquireExistingLocksAsync(appointment, cancellationToken);
+                if (!AppointmentInfrastructureSupport.MatchesVersion(
+                    appointment.RowVersion, rowVersion))
+                    return Result.Failure(AppointmentErrors.ConcurrencyConflict);
+                if (action != AppointmentAuditActions.Cancelled &&
+                    await _dbContext.ApprovalRequests.AnyAsync(item =>
+                        item.AppointmentId == appointmentId &&
+                        item.Status == Domain.Approvals.ApprovalRequestStatus.Pending,
+                        cancellationToken))
+                    return Result.Failure(AppointmentErrors.NotEditable);
+
+                DateTimeOffset now = _timeProvider.GetUtcNow();
+                if (appointment.PatientPackageId.HasValue &&
+                    action == AppointmentAuditActions.Completed)
+                    await PackageSessionLifecycle.ConsumeAsync(_dbContext, appointment,
+                        actorUserId, now, cancellationToken);
+                else if (appointment.PatientPackageId.HasValue &&
+                    action == AppointmentAuditActions.NoShow)
+                    await PackageSessionLifecycle.ReleaseAsync(_dbContext, appointment.Id,
+                        actorUserId, now, cancellationToken);
+
+                mutation(appointment);
+                AppointmentInfrastructureSupport.AddAudit(_dbContext, actorUserId, action,
+                    appointmentId, now, reason);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return Result.Success();
+            });
+        }
+        catch (DomainException)
+        {
+            return Result.Failure(AppointmentErrors.NotEditable);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
             return Result.Failure(AppointmentErrors.ConcurrencyConflict);
-        try { mutation(appointment); }
-        catch (DomainException) { return Result.Failure(AppointmentErrors.NotEditable); }
-        AppointmentInfrastructureSupport.AddAudit(_dbContext, actorUserId, action,
-            appointmentId, _timeProvider.GetUtcNow(), reason);
-        try { await _dbContext.SaveChangesAsync(cancellationToken); return Result.Success(); }
-        catch (DbUpdateConcurrencyException) { return Result.Failure(AppointmentErrors.ConcurrencyConflict); }
+        }
     }
 
     private async Task LoadNavigationsAsync(Appointment appointment,
@@ -775,8 +946,18 @@ public sealed class AppointmentService : IAppointmentService
         }
     }
 
+    private static string Fingerprint(long actorUserId, AppointmentInput input)
+    {
+        string services = string.Join(';', input.Services.Select(item =>
+            $"{item.ServiceId}:{item.DoctorId}:{item.Quantity}:" +
+            string.Join(',', item.OptionalDeviceIds.Order())));
+        string value = $"{actorUserId}|{input.PatientId}|{input.DepartmentId}|" +
+            $"{input.StartAt.ToUniversalTime():O}|{input.PatientPackageId}|{services}";
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+    }
+
     private sealed record PreparedAppointment(Appointment Appointment, Room Room,
-        IReadOnlyCollection<PreparedLine> Lines);
+        IReadOnlyCollection<PreparedLine> Lines, PatientPackage? PatientPackage);
     private sealed record PreparedLine(Service Service, DoctorService DoctorService,
         int Quantity, decimal UnitPrice, IReadOnlyCollection<ServiceDevice> Devices);
     private sealed record TimeInterval(DateTimeOffset StartAt, DateTimeOffset EndAt);

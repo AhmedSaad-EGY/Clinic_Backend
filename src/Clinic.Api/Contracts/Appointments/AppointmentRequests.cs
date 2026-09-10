@@ -10,15 +10,15 @@ public sealed record FollowUpBookingRequest(long FollowUpId, string RowVersion);
 
 public sealed record CreateAppointmentRequest(long PatientId, long DepartmentId,
     DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
-    FollowUpBookingRequest? FollowUp = null);
+    FollowUpBookingRequest? FollowUp = null, long? PatientPackageId = null);
 
 public sealed record UpdateAppointmentRequest(long PatientId, long DepartmentId,
     DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
-    string RowVersion);
+    string RowVersion, long? PatientPackageId = null);
 
 public sealed record CheckAppointmentAvailabilityRequest(long PatientId, long DepartmentId,
     DateTimeOffset StartAt, IReadOnlyCollection<AppointmentLineRequest> Services,
-    long? ExcludedAppointmentId);
+    long? ExcludedAppointmentId, long? PatientPackageId = null);
 
 public sealed record ChangeAppointmentStateRequest(string RowVersion, string? Reason = null);
 public sealed record TransferAppointmentDoctorRequest(long DoctorId, string Reason,

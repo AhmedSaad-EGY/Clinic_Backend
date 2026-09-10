@@ -69,4 +69,11 @@ public sealed class PatientPackagesController : ControllerBase
             new ListPackageSessionsQuery(patientPackageId), cancellationToken);
         return this.ToActionResult(result);
     }
+
+    [HttpGet("patient-packages/{patientPackageId:long}/booking-options")]
+    public async Task<ActionResult<PackageBookingOptionsModel>> BookingOptions(
+        long patientPackageId, [FromQuery] DateTimeOffset startAt,
+        GetPackageBookingOptionsQueryHandler handler, CancellationToken cancellationToken) =>
+        this.ToActionResult(await handler.Handle(new GetPackageBookingOptionsQuery(
+            patientPackageId, startAt), cancellationToken));
 }

@@ -75,9 +75,12 @@ internal static class CashierValidation
     public static Result Payment(PostPaymentInput input, Guid idempotencyKey,
         bool adminOverride)
     {
-        if (idempotencyKey == Guid.Empty || input.AppointmentIds.Count is < 1 or > 20 ||
+        if (idempotencyKey == Guid.Empty ||
+            input.AppointmentIds.Count + input.PatientPackageIds.Count is < 1 or > 20 ||
             input.AppointmentIds.Any(id => id <= 0) ||
             input.AppointmentIds.Distinct().Count() != input.AppointmentIds.Count ||
+            input.PatientPackageIds.Any(id => id <= 0) ||
+            input.PatientPackageIds.Distinct().Count() != input.PatientPackageIds.Count ||
             input.MethodAllocations.Count is < 1 or > 4 ||
             input.MethodAllocations.Any(item => item.PaymentMethodId <= 0 ||
                 item.Amount <= 0 || decimal.Round(item.Amount, 2) != item.Amount ||

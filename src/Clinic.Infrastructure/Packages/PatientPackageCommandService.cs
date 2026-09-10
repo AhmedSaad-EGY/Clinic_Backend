@@ -47,8 +47,8 @@ public sealed class PatientPackageCommandService : IPatientPackageCommandService
             DateTimeOffset replayedAt = _timeProvider.GetUtcNow();
             bool stopped = await IsDepartmentStoppedAsync(existing.DepartmentId,
                 replayedAt, cancellationToken);
-            PatientPackageModel replay = PatientPackageInfrastructureSupport.Map(existing,
-                stopped, replayedAt);
+            PatientPackageModel replay = await MapWithPaymentAsync(existing, stopped,
+                replayedAt, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return Result.Success(new PatientPackageRegistrationResult(replay, true));
         }
@@ -178,8 +178,8 @@ public sealed class PatientPackageCommandService : IPatientPackageCommandService
             await _dbContext.SaveChangesAsync(cancellationToken);
             bool stopped = await IsDepartmentStoppedAsync(patientPackage.DepartmentId, now,
                 cancellationToken);
-            PatientPackageModel response = PatientPackageInfrastructureSupport.Map(patientPackage,
-                stopped, now);
+            PatientPackageModel response = await MapWithPaymentAsync(patientPackage, stopped,
+                now, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return Result.Success(response);
         });
@@ -191,6 +191,15 @@ public sealed class PatientPackageCommandService : IPatientPackageCommandService
             .ThenInclude(item => item.Service)
         .Include(item => item.Services).ThenInclude(item => item.Sessions)
         .AsSplitQuery();
+
+    private async Task<PatientPackageModel> MapWithPaymentAsync(PatientPackage patientPackage,
+        bool departmentStopped, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        PatientPackagePaymentReferenceModel? payment = await PatientPackageInfrastructureSupport
+            .PaymentReferenceAsync(_dbContext, patientPackage.Id, cancellationToken);
+        return PatientPackageInfrastructureSupport.Map(patientPackage, departmentStopped, now)
+            with { Payment = payment };
+    }
 
     private Task<bool> IsDepartmentStoppedAsync(long departmentId, DateTimeOffset now,
         CancellationToken cancellationToken) => _dbContext.DepartmentClosures.AsNoTracking()

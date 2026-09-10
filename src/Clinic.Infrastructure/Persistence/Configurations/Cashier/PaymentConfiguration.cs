@@ -46,9 +46,15 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasForeignKey(item => new { item.PaymentId, item.PatientId })
             .HasPrincipalKey(item => new { item.Id, item.PatientId })
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(item => item.PackageAllocations).WithOne(item => item.Payment)
+            .HasForeignKey(item => new { item.PaymentId, item.PatientId })
+            .HasPrincipalKey(item => new { item.Id, item.PatientId })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.Navigation(item => item.MethodAllocations)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
         builder.Navigation(item => item.AppointmentAllocations)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(item => item.PackageAllocations)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

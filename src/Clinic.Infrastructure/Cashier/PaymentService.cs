@@ -12,7 +12,9 @@ using Clinic.Domain.Approvals;
 using Clinic.Domain.Auditing;
 using Clinic.Domain.Cashier;
 using Clinic.Domain.Common;
+using Clinic.Domain.Packages;
 using Clinic.Infrastructure.Appointments;
+using Clinic.Infrastructure.Packages;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -49,6 +51,7 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
         ShiftTarget? target = await FindShiftTargetAsync(actorUserId, input.ShiftId,
             adminOverride, requestTime, cancellationToken);
         PaymentTarget? paymentTarget = await FindPaymentTargetAsync(input.AppointmentIds,
+            input.PatientPackageIds,
             cancellationToken);
         if (target is null)
         {
@@ -58,7 +61,9 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
         if (paymentTarget is null)
         {
             return Result.Failure<PostedPaymentModel>(
-                CashierErrors.AppointmentNotPayable);
+                input.PatientPackageIds.Count > 0
+                    ? CashierErrors.PatientPackageNotPayable
+                    : CashierErrors.AppointmentNotPayable);
         }
 
         string fingerprint = Fingerprint(actorUserId, target.ShiftId, input,
@@ -75,12 +80,22 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
                     target.SecretaryUserId, cancellationToken);
                 await TransactionalResourceLock.AcquireShiftAsync(dbContext,
                     target.ShiftId, cancellationToken);
+                foreach (long departmentId in paymentTarget.DepartmentIds)
+                {
+                    await TransactionalResourceLock.AcquireDepartmentAsync(dbContext,
+                        departmentId, cancellationToken);
+                }
                 await TransactionalResourceLock.AcquirePatientAsync(dbContext,
                     paymentTarget.PatientId, cancellationToken);
                 foreach (long appointmentId in paymentTarget.AppointmentIds)
                 {
                     await TransactionalResourceLock.AcquireAppointmentAsync(dbContext,
                         appointmentId, cancellationToken);
+                }
+                foreach (long patientPackageId in paymentTarget.PatientPackageIds)
+                {
+                    await TransactionalResourceLock.AcquirePatientPackageAsync(dbContext,
+                        patientPackageId, cancellationToken);
                 }
                 DateTimeOffset now = timeProvider.GetUtcNow();
 
@@ -110,11 +125,43 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
                 Appointment[] appointments = await dbContext.Appointments
                     .Where(item => input.AppointmentIds.Contains(item.Id))
                     .OrderBy(item => item.Id).ToArrayAsync(cancellationToken);
+                PatientPackage[] patientPackages = await dbContext.PatientPackages
+                    .Include(item => item.Package).ThenInclude(item => item.Department)
+                    .Include(item => item.Services).ThenInclude(item =>
+                        item.SourcePackageService).ThenInclude(item => item.Service)
+                    .AsSplitQuery().Where(item =>
+                        input.PatientPackageIds.Contains(item.Id))
+                    .OrderBy(item => item.Id).ToArrayAsync(cancellationToken);
                 if (appointments.Length != input.AppointmentIds.Count ||
-                    appointments.Select(item => item.PatientId).Distinct().Count() != 1)
+                    patientPackages.Length != input.PatientPackageIds.Count ||
+                    appointments.Select(item => item.PatientId)
+                        .Concat(patientPackages.Select(item => item.PatientId))
+                        .Distinct().Count() != 1)
                 {
                     return Result.Failure<PostedPaymentModel>(
                         CashierErrors.AppointmentNotPayable);
+                }
+
+                if (patientPackages.Any(item =>
+                    item.PaymentStatus != PatientPackagePaymentStatus.Unpaid ||
+                    item.Status != PatientPackageStatus.Active || item.NetPriceSnapshot <= 0 ||
+                    item.Package.Department.IsArchived || item.Services.Count == 0 ||
+                    item.Services.Any(service => service.SourcePackageService.Service.IsArchived ||
+                        !service.SourcePackageService.Service.IsActive)))
+                {
+                    return Result.Failure<PostedPaymentModel>(
+                        CashierErrors.PatientPackageNotPayable);
+                }
+
+                long[] packageDepartmentIds = patientPackages.Select(item => item.DepartmentId)
+                    .Distinct().ToArray();
+                if (await dbContext.DepartmentClosures.AsNoTracking().AnyAsync(item =>
+                    packageDepartmentIds.Contains(item.DepartmentId) &&
+                    item.CancelledAt == null && item.StartAt <= now && now < item.EndAt,
+                    cancellationToken))
+                {
+                    return Result.Failure<PostedPaymentModel>(
+                        CashierErrors.PatientPackageNotPayable);
                 }
 
                 long patientId = paymentTarget.PatientId;
@@ -153,6 +200,10 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
                 {
                     appointment.RecordFullPayment(actorUserId, now);
                 }
+                foreach (PatientPackage patientPackage in patientPackages)
+                {
+                    patientPackage.RecordFullPayment(patientPackage.NetPriceSnapshot, now);
+                }
 
                 string transactionNumber = await NextTransactionNumberAsync(now,
                     cancellationToken);
@@ -164,7 +215,8 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
                         return (method.Id, method.IsCash, item.Amount,
                             item.ReferenceNumber);
                     }).ToArray(), appointments.Select(item =>
-                        (item.Id, item.NetAmount)).ToArray());
+                        (item.Id, item.NetAmount)).ToArray(), patientPackages.Select(item =>
+                        (item, item.NetPriceSnapshot)).ToArray());
                 dbContext.Payments.Add(payment);
                 await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -172,11 +224,19 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
                     "cashier.payment_posted", nameof(Payment), payment.Id, now,
                     adminOverride ? input.Reason?.Trim() : null,
                     new { payment.ShiftId, payment.TotalAmount,
-                        AppointmentIds = appointments.Select(item => item.Id).ToArray() }));
+                        AppointmentIds = appointments.Select(item => item.Id).ToArray(),
+                        PatientPackageIds = patientPackages.Select(item => item.Id).ToArray() }));
                 foreach (Appointment appointment in appointments)
                 {
                     AppointmentInfrastructureSupport.AddAudit(dbContext, actorUserId,
                         "appointments.payment_recorded", appointment.Id, now);
+                }
+                foreach (PatientPackage patientPackage in patientPackages)
+                {
+                    PatientPackageInfrastructureSupport.AddAudit(dbContext, actorUserId,
+                        PatientPackageAuditActions.Paid, patientPackage.Id, now,
+                        new { payment.Id, payment.TransactionNumber,
+                            Amount = patientPackage.NetPriceSnapshot });
                 }
 
                 await dbContext.SaveChangesAsync(cancellationToken);
@@ -215,6 +275,12 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
         {
             return Result.Failure<PostedPaymentModel>(
                 CashierErrors.AppointmentNotPayable);
+        }
+        catch (DbUpdateException exception) when (CashierInfrastructureSupport.IsUniqueViolation(exception,
+            "UX_PackagePaymentAllocations_PatientPackageId"))
+        {
+            return Result.Failure<PostedPaymentModel>(
+                CashierErrors.PatientPackageNotPayable);
         }
     }
 
@@ -347,16 +413,25 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
 
     private async Task<PaymentTarget?> FindPaymentTargetAsync(
         IReadOnlyCollection<long> appointmentIds,
+        IReadOnlyCollection<long> patientPackageIds,
         CancellationToken cancellationToken)
     {
         AppointmentIdentity[] appointments = await dbContext.Appointments.AsNoTracking()
             .Where(item => appointmentIds.Contains(item.Id))
             .Select(item => new AppointmentIdentity(item.Id, item.PatientId))
             .ToArrayAsync(cancellationToken);
+        PatientPackageIdentity[] packages = await dbContext.PatientPackages.AsNoTracking()
+            .Where(item => patientPackageIds.Contains(item.Id))
+            .Select(item => new PatientPackageIdentity(item.Id, item.PatientId,
+                item.DepartmentId)).ToArrayAsync(cancellationToken);
+        long[] patientIds = appointments.Select(item => item.PatientId)
+            .Concat(packages.Select(item => item.PatientId)).Distinct().ToArray();
         return appointments.Length == appointmentIds.Count &&
-            appointments.Select(item => item.PatientId).Distinct().Count() == 1
-            ? new PaymentTarget(appointments[0].PatientId,
-                appointments.Select(item => item.AppointmentId).Order().ToArray())
+            packages.Length == patientPackageIds.Count && patientIds.Length == 1
+            ? new PaymentTarget(patientIds[0],
+                appointments.Select(item => item.AppointmentId).Order().ToArray(),
+                packages.Select(item => item.PatientPackageId).Order().ToArray(),
+                packages.Select(item => item.DepartmentId).Distinct().Order().ToArray())
             : null;
     }
 
@@ -380,7 +455,10 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
         return query.Include(item => item.Patient)
             .Include(item => item.Shift).ThenInclude(item => item.CashDrawer)
             .Include(item => item.MethodAllocations).ThenInclude(item => item.PaymentMethod)
-            .Include(item => item.AppointmentAllocations);
+            .Include(item => item.AppointmentAllocations)
+            .Include(item => item.PackageAllocations)
+                .ThenInclude(item => item.PatientPackage)
+            .AsSplitQuery();
     }
 
     private async Task<PaymentModel> MapAsync(Payment payment,
@@ -403,7 +481,11 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
                     item.ReferenceNumber)).ToArray(), payment.AppointmentAllocations
                 .OrderBy(item => item.AppointmentId)
                 .Select(item => new AppointmentPaymentAllocationModel(item.AppointmentId,
-                    item.Amount)).ToArray(), Convert.ToBase64String(payment.RowVersion));
+                    item.Amount)).ToArray(), payment.PackageAllocations
+                .OrderBy(item => item.PatientPackageId)
+                .Select(item => new PackagePaymentAllocationModel(item.PatientPackageId,
+                    item.PatientPackage.PackageNameSnapshot, item.Amount)).ToArray(),
+                Convert.ToBase64String(payment.RowVersion));
 
     private async Task<string> NextTransactionNumberAsync(DateTimeOffset now,
         CancellationToken cancellationToken)
@@ -423,12 +505,30 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
     private static string Fingerprint(long actorUserId, long shiftId,
         PostPaymentInput input, bool adminOverride)
     {
-        string canonical = JsonSerializer.Serialize(new
+        string canonical = input.PatientPackageIds.Count == 0
+            ? JsonSerializer.Serialize(new
+            {
+                ActorUserId = actorUserId,
+                ShiftId = shiftId,
+                AdminOverride = adminOverride,
+                AppointmentIds = input.AppointmentIds.Order().ToArray(),
+                Methods = input.MethodAllocations.OrderBy(item => item.PaymentMethodId)
+                    .Select(item => new
+                    {
+                        item.PaymentMethodId,
+                        item.Amount,
+                        ReferenceNumber = item.ReferenceNumber?.Trim()
+                    }).ToArray(),
+                Note = input.Note?.Trim(),
+                Reason = input.Reason?.Trim()
+            })
+            : JsonSerializer.Serialize(new
         {
             ActorUserId = actorUserId,
             ShiftId = shiftId,
             AdminOverride = adminOverride,
             AppointmentIds = input.AppointmentIds.Order().ToArray(),
+            PatientPackageIds = input.PatientPackageIds.Order().ToArray(),
             Methods = input.MethodAllocations.OrderBy(item => item.PaymentMethodId)
                 .Select(item => new
                 {
@@ -443,6 +543,9 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
     }
 
     private sealed record ShiftTarget(long ShiftId, long SecretaryUserId);
-    private sealed record PaymentTarget(long PatientId, long[] AppointmentIds);
+    private sealed record PaymentTarget(long PatientId, long[] AppointmentIds,
+        long[] PatientPackageIds, long[] DepartmentIds);
     private sealed record AppointmentIdentity(long AppointmentId, long PatientId);
+    private sealed record PatientPackageIdentity(long PatientPackageId, long PatientId,
+        long DepartmentId);
 }

@@ -60,7 +60,8 @@ public sealed class CashierPaymentsController : ControllerBase
             shiftId, AdminOverride: false), token));
 
     private static PostPaymentInput Map(PostPaymentRequest request) => new(null,
-        request.AppointmentIds, request.MethodAllocations.Select(item =>
+        request.AppointmentIds, request.PatientPackageIds ?? [],
+        request.MethodAllocations.Select(item =>
             new PaymentMethodInput(item.PaymentMethodId, item.Amount,
                 item.ReferenceNumber)).ToArray(), request.Note, Reason: null);
 }

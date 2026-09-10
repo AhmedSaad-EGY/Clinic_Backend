@@ -40,6 +40,8 @@ public interface IPatientPackageQueryService
         CancellationToken cancellationToken);
     Task<Result<IReadOnlyCollection<PackageSessionModel>>> ListSessionsAsync(long patientPackageId,
         CancellationToken cancellationToken);
+    Task<Result<PackageBookingOptionsModel>> GetBookingOptionsAsync(long patientPackageId,
+        DateTimeOffset startAt, CancellationToken cancellationToken);
     Task<Result<PatientPackagePage>> SearchAdminAsync(AdminPatientPackageFilter filter,
         CancellationToken cancellationToken);
 }

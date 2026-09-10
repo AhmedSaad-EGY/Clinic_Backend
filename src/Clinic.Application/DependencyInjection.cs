@@ -144,6 +144,7 @@ public static class DependencyInjection
         services.AddScoped<ListPatientPackagesQueryHandler>();
         services.AddScoped<GetPatientPackageQueryHandler>();
         services.AddScoped<ListPackageSessionsQueryHandler>();
+        services.AddScoped<GetPackageBookingOptionsQueryHandler>();
         services.AddScoped<SearchAdminPatientPackagesQueryHandler>();
 
         return services;

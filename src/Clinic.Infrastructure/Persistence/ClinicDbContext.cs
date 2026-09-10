@@ -49,6 +49,8 @@ public sealed class ClinicDbContext
 
     public DbSet<PackageSession> PackageSessions => Set<PackageSession>();
 
+    public DbSet<PackageSessionBooking> PackageSessionBookings => Set<PackageSessionBooking>();
+
     public DbSet<Doctor> Doctors => Set<Doctor>();
 
     public DbSet<DoctorService> DoctorServices => Set<DoctorService>();
@@ -86,6 +88,9 @@ public sealed class ClinicDbContext
 
     public DbSet<AppointmentPaymentAllocation> AppointmentPaymentAllocations =>
         Set<AppointmentPaymentAllocation>();
+
+    public DbSet<PackagePaymentAllocation> PackagePaymentAllocations =>
+        Set<PackagePaymentAllocation>();
 
     public DbSet<ApprovalRequest> ApprovalRequests => Set<ApprovalRequest>();
 

@@ -38,12 +38,25 @@ public sealed record PatientPackageModel(long Id, long PatientId, long PatientFi
     DateTimeOffset? ActivationDeadlineAt, DateTimeOffset? FirstUsedAt,
     DateTimeOffset? ExpiresAt, int AvailableSessions, int ReservedSessions,
     int ConsumedSessions, IReadOnlyCollection<PatientPackageServiceModel> Services,
-    string RowVersion);
+    string RowVersion, PatientPackagePaymentReferenceModel? Payment = null);
+
+public sealed record PatientPackagePaymentReferenceModel(long PaymentId,
+    string TransactionNumber, DateTimeOffset CollectedAt);
 
 public sealed record PackageSessionModel(long Id, long PatientPackageServiceId, long ServiceId,
     string ServiceName, int SequenceNumber, decimal UnitPriceSnapshot,
     PackageSessionStatus Status, DateTimeOffset? ReservedAt, DateTimeOffset? ConsumedAt,
-    string RowVersion);
+    string RowVersion, long? AppointmentId = null,
+    PackageSessionBookingStatus? BookingStatus = null);
+
+public sealed record PackageBookingOptionServiceModel(long ServiceId, string ServiceName,
+    long SpecializationId, string SpecializationName, int DurationMinutes,
+    int AvailableSessions, bool CanBook, string? UnavailabilityReason);
+
+public sealed record PackageBookingOptionsModel(long PatientPackageId, long PatientId,
+    long DepartmentId, string PackageName, DateTimeOffset StartAt, bool CanBook,
+    string? UnavailabilityReason,
+    IReadOnlyCollection<PackageBookingOptionServiceModel> Services);
 
 public sealed record PatientPackageRegistrationResult(PatientPackageModel PatientPackage,
     bool IsReplay);
