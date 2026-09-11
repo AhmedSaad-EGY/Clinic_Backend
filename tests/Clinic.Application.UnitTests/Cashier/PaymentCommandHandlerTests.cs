@@ -119,6 +119,8 @@ public sealed class PaymentCommandHandlerTests
         public Task<Result<PaymentModel>> GetAsync(long actorUserId, long paymentId,
             bool adminOverride, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
+        public Task<Result<PaymentModel>> GetForPatientAsync(long patientId, long paymentId,
+            CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<Result<PaymentPage>> ListForShiftAsync(long actorUserId, long shiftId,
             bool adminOverride, int pageNumber, int pageSize,
             CancellationToken cancellationToken) => throw new NotSupportedException();

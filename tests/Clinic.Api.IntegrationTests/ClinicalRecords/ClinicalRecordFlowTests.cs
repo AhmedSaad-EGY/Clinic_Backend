@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Clinic.Api.IntegrationTests.Identity;
+using Clinic.Application.Abstractions.Patients;
 using Clinic.Domain.Appointments;
 using Clinic.Domain.Catalog;
 using Clinic.Domain.ClinicalRecords;
@@ -69,6 +70,14 @@ public sealed class ClinicalRecordFlowTests : IClassFixture<IdentitySqlServerFix
             $"/api/follow-ups/{followUp.Id}") ?? throw new InvalidOperationException();
         Assert.Equal(FollowUpStatus.Completed, completed.Status);
         Assert.Equal(booked.Id, completed.ResultAppointmentId);
+
+        PatientTimelineResponse timeline = await client.GetFromJsonAsync<
+            PatientTimelineResponse>($"/api/patients/{data.PatientId}/timeline" +
+                "?recordTypes=6&recordTypes=7") ?? throw new InvalidOperationException();
+        Assert.Contains(timeline.Items,
+            item => item.RecordType == PatientTimelineRecordType.Prescription);
+        Assert.Contains(timeline.Items,
+            item => item.RecordType == PatientTimelineRecordType.FollowUp);
 
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         ClinicDbContext dbContext = scope.ServiceProvider.GetRequiredService<ClinicDbContext>();
@@ -217,6 +226,9 @@ public sealed class ClinicalRecordFlowTests : IClassFixture<IdentitySqlServerFix
     private sealed record FollowUpPage(IReadOnlyCollection<FollowUpResponse> Items);
     private sealed record FollowUpResponse(long Id, DateOnly ReturnDate,
         FollowUpStatus Status, long? ResultAppointmentId, string RowVersion);
+    private sealed record PatientTimelineResponse(
+        IReadOnlyCollection<PatientTimelineItemResponse> Items);
+    private sealed record PatientTimelineItemResponse(PatientTimelineRecordType RecordType);
     private sealed record FollowUpBookingRequest(long FollowUpId, string RowVersion);
     private sealed record AppointmentLineRequest(long ServiceId, long DoctorId, int Quantity,
         IReadOnlyCollection<long> OptionalDeviceIds);

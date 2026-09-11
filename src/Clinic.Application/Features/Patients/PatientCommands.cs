@@ -96,6 +96,40 @@ public sealed class ArchivePatientCommandHandler : ICommandHandler<ArchivePatien
     }
 }
 
+public sealed record RestorePatientCommand(long PatientId, string Reason, string RowVersion)
+    : ICommand<PatientDetails>;
+
+public sealed class RestorePatientCommandHandler
+    : ICommandHandler<RestorePatientCommand, PatientDetails>
+{
+    private readonly ICurrentUser _currentUser;
+    private readonly IPatientAdministrationService _service;
+
+    public RestorePatientCommandHandler(ICurrentUser currentUser,
+        IPatientAdministrationService service)
+    {
+        _currentUser = currentUser;
+        _service = service;
+    }
+
+    public Task<Result<PatientDetails>> Handle(RestorePatientCommand command,
+        CancellationToken cancellationToken)
+    {
+        Result<long> actor = PatientValidation.Actor(_currentUser);
+        Result reason = PatientValidation.RequiredText(command.Reason, "سبب الاستعادة", 500);
+        Result<byte[]> version = PatientValidation.RowVersion(command.RowVersion);
+        if (actor.IsFailure || reason.IsFailure || version.IsFailure)
+        {
+            ResultError error = actor.IsFailure ? actor.Error : reason.IsFailure
+                ? reason.Error : version.Error;
+            return Task.FromResult(Result.Failure<PatientDetails>(error));
+        }
+
+        return _service.RestorePatientAsync(actor.Value, command.PatientId,
+            command.Reason.Trim(), version.Value, cancellationToken);
+    }
+}
+
 public sealed record CreatePatientNoteCommand(long PatientId, string NoteText,
     PatientNoteVisibility Visibility) : ICommand<SensitiveNoteReceipt>;
 

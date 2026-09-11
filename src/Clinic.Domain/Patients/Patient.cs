@@ -87,6 +87,19 @@ public sealed class Patient : AggregateRoot
         UpdatedAt = archivedAt;
     }
 
+    public void Restore(long restoredByAdminUserId, DateTimeOffset restoredAt)
+    {
+        if (!IsArchived)
+        {
+            throw new DomainException("ملف المريض غير مؤرشف.");
+        }
+
+        PatientGuard.PositiveId(restoredByAdminUserId, "الأدمن");
+        IsArchived = false;
+        UpdatedByUserId = restoredByAdminUserId;
+        UpdatedAt = restoredAt;
+    }
+
     public int GetCurrentAge(DateOnly onDate)
     {
         if (BirthDate is DateOnly birthDate)

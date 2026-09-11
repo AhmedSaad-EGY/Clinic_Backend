@@ -32,6 +32,7 @@ public sealed class PatientQueryService : IPatientQueryService
         {
             query = query.Where(item => item.FullName.Contains(search) ||
                 (normalizedPhone != null && item.PrimaryPhoneNumber == normalizedPhone) ||
+                (normalizedPhone != null && item.SecondaryPhoneNumber == normalizedPhone) ||
                 (fileNumber != null && item.FileNumber == fileNumber));
         }
 

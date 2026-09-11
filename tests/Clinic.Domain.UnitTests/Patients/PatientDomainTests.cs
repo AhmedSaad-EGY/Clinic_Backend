@@ -65,6 +65,28 @@ public sealed class PatientDomainTests
             Now.AddMinutes(2)));
     }
 
+    [Fact]
+    public void ArchivedPatientCanBeRestoredWithoutChangingClinicalData()
+    {
+        Patient patient = CreatePatient(age: 30, secondaryPhone: "01112345678");
+        patient.Archive(2, Now.AddMinutes(1));
+
+        patient.Restore(3, Now.AddMinutes(2));
+
+        Assert.False(patient.IsArchived);
+        Assert.Equal("01112345678", patient.SecondaryPhoneNumber);
+        Assert.Equal(3, patient.UpdatedByUserId);
+        Assert.Equal(Now.AddMinutes(2), patient.UpdatedAt);
+    }
+
+    [Fact]
+    public void ActivePatientCannotBeRestored()
+    {
+        Patient patient = CreatePatient(age: 30, secondaryPhone: null);
+
+        Assert.Throws<DomainException>(() => patient.Restore(2, Now));
+    }
+
     [Theory]
     [InlineData(30)]
     [InlineData(31)]

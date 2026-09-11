@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Clinic.Api.IntegrationTests.Identity;
 using Clinic.Application.Abstractions.Appointments;
 using Clinic.Application.Abstractions.Cashier;
+using Clinic.Application.Abstractions.Patients;
 using Clinic.Application.Common;
 using Clinic.Domain.Appointments;
 using Clinic.Domain.Cashier;
@@ -164,6 +165,13 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         Assert.Equal(packagePayment.Id, paidPackage.Payment?.PaymentId);
         Assert.Equal(packagePayment.TransactionNumber,
             paidPackage.Payment?.TransactionNumber);
+        PatientTimelineResponse financialTimeline = await GetAsync<PatientTimelineResponse>(
+            cashier, $"/api/patients/{seeded.PatientId}/timeline" +
+                "?recordTypes=2&recordTypes=4");
+        Assert.Contains(financialTimeline.Items,
+            item => item.RecordType == PatientTimelineRecordType.Payment);
+        Assert.Contains(financialTimeline.Items,
+            item => item.RecordType == PatientTimelineRecordType.PatientPackage);
         PackageBookingOptionsResponse bookingOptions = await GetAsync<
             PackageBookingOptionsResponse>(cashier,
             $"/api/patient-packages/{seeded.PatientPackageId}/booking-options" +
@@ -232,6 +240,13 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         Assert.Equal(AppointmentStatus.Completed, completedAppointment.Status);
         Assert.Equal(PackageSessionBookingStatus.Consumed,
             Assert.Single(completedAppointment.Services).PackageSessionBooking?.Status);
+        PatientTimelineResponse packageTimeline = await GetAsync<PatientTimelineResponse>(
+            cashier, $"/api/patients/{seeded.PatientId}/timeline" +
+                "?recordTypes=1&recordTypes=5");
+        Assert.Contains(packageTimeline.Items,
+            item => item.RecordType == PatientTimelineRecordType.Appointment);
+        Assert.Contains(packageTimeline.Items,
+            item => item.RecordType == PatientTimelineRecordType.PackageSession);
 
         await AddDepartmentClosureAsync(seeded.DepartmentId, seeded.AdminUserId,
             start.AddHours(4), start.AddHours(4).AddMinutes(30));
@@ -495,6 +510,12 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         using HttpClient refundCashier = _fixture.CreateClient();
         await LoginAndChangePasswordAsync(refundCashier, refundSecretary.UserName,
             "SecretaryPass1", "SecretaryPass2");
+        PaymentResponse patientPayment = await GetAsync<PaymentResponse>(refundCashier,
+            $"/api/patients/{seeded.PatientId}/payments/{payment.Id}");
+        Assert.Equal(payment.Id, patientPayment.Id);
+        RefundResponse patientRefund = await GetAsync<RefundResponse>(refundCashier,
+            $"/api/patients/{seeded.PatientId}/refunds/{firstRefund.Refund.Id}");
+        Assert.Equal(firstRefund.Refund.Id, patientRefund.Id);
         ShiftResponse refundCurrent = await GetAsync<ShiftResponse>(refundCashier,
             "/api/cashier/shifts/current");
         Assert.Equal(refundShift.Id, refundCurrent.Id);
@@ -551,6 +572,25 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
         });
         Assert.Equal(2, await finalDb.AuditLogs.CountAsync(item =>
             item.Action == "cashier.refund_posted"));
+
+        Patient archivedPatient = await finalDb.Patients.SingleAsync(item =>
+            item.Id == seeded.PatientId);
+        archivedPatient.Archive(seeded.AdminUserId, _fixture.Clock.GetUtcNow());
+        await finalDb.SaveChangesAsync();
+
+        using HttpResponseMessage archivedPatientPayment = await cashier.GetAsync(
+            $"/api/patients/{seeded.PatientId}/payments/{payment.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, archivedPatientPayment.StatusCode);
+        PaymentResponse adminArchivedPatientPayment = await GetAsync<PaymentResponse>(admin,
+            $"/api/admin/patients/{seeded.PatientId}/payments/{payment.Id}");
+        Assert.Equal(payment.Id, adminArchivedPatientPayment.Id);
+
+        using HttpResponseMessage archivedPatientRefund = await refundCashier.GetAsync(
+            $"/api/patients/{seeded.PatientId}/refunds/{firstRefund.Refund.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, archivedPatientRefund.StatusCode);
+        RefundResponse adminArchivedPatientRefund = await GetAsync<RefundResponse>(admin,
+            $"/api/admin/patients/{seeded.PatientId}/refunds/{firstRefund.Refund.Id}");
+        Assert.Equal(firstRefund.Refund.Id, adminArchivedPatientRefund.Id);
     }
 
     private async Task<SeededPaymentTargets> SeedPaymentTargetsAsync(DateOnly clinicDate,
@@ -872,6 +912,9 @@ public sealed class PaymentFlowTests : IClassFixture<IdentitySqlServerFixture>
     private sealed record ExecuteRefundRequest(
         IReadOnlyCollection<RefundMethodRequest> MethodAllocations, string? Note);
     private sealed record RefundResponse(long Id, decimal Amount);
+    private sealed record PatientTimelineResponse(
+        IReadOnlyCollection<PatientTimelineItemResponse> Items);
+    private sealed record PatientTimelineItemResponse(PatientTimelineRecordType RecordType);
     private sealed record PostedRefundResponse(RefundResponse Refund, bool WasReplayed,
         decimal ExpectedCashAfterRefund, bool IsExpectedCashNegative);
     private sealed record CreateSecretaryRequest(string FullName, string PhoneNumber,

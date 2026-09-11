@@ -33,6 +33,8 @@ public interface IRefundService
         CancellationToken cancellationToken);
     Task<Result<RefundModel>> GetAsync(long actorUserId, long refundId,
         bool adminOverride, CancellationToken cancellationToken);
+    Task<Result<RefundModel>> GetForPatientAsync(long patientId, long refundId,
+        CancellationToken cancellationToken);
     Task<Result<RefundPage>> ListForShiftAsync(long actorUserId, long shiftId,
         bool adminOverride, int pageNumber, int pageSize,
         CancellationToken cancellationToken);

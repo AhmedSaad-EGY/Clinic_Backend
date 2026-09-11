@@ -1,6 +1,7 @@
 using Clinic.Api.Contracts.Patients;
 using Clinic.Api.Infrastructure.Errors;
 using Clinic.Application.Abstractions.Identity;
+using Clinic.Application.Abstractions.Cashier;
 using Clinic.Application.Abstractions.Patients;
 using Clinic.Application.Features.Patients;
 using Clinic.Domain.Patients;
@@ -28,6 +29,32 @@ public sealed class PatientsController : ControllerBase
         GetPatientQueryHandler handler, CancellationToken cancellationToken) =>
         this.ToActionResult(await handler.Handle(
             new GetPatientQuery(patientId, IncludeArchived: false), cancellationToken));
+
+    [HttpGet("{patientId:long}/timeline")]
+    public async Task<ActionResult<PatientTimelinePage>> Timeline(long patientId,
+        [FromQuery] DateOnly? from, [FromQuery] DateOnly? to,
+        [FromQuery] PatientTimelineRecordType[]? recordTypes,
+        [FromQuery] int pageNumber, [FromQuery] int pageSize,
+        GetPatientTimelineQueryHandler handler, CancellationToken cancellationToken) =>
+        this.ToActionResult(await handler.Handle(new GetPatientTimelineQuery(patientId,
+            IncludeArchivedPatient: false, IncludeAdminOnlyNotes: false,
+            new PatientTimelineFilter(from, to, recordTypes ?? [],
+                IncludeArchivedRecords: false, NormalizePageNumber(pageNumber),
+                NormalizePageSize(pageSize))), cancellationToken));
+
+    [HttpGet("{patientId:long}/payments/{paymentId:long}")]
+    public async Task<ActionResult<PaymentModel>> Payment(long patientId, long paymentId,
+        GetPatientPaymentQueryHandler handler, CancellationToken cancellationToken) =>
+        this.ToActionResult(await handler.Handle(
+            new GetPatientPaymentQuery(patientId, paymentId,
+                IncludeArchivedPatient: false), cancellationToken));
+
+    [HttpGet("{patientId:long}/refunds/{refundId:long}")]
+    public async Task<ActionResult<RefundModel>> Refund(long patientId, long refundId,
+        GetPatientRefundQueryHandler handler, CancellationToken cancellationToken) =>
+        this.ToActionResult(await handler.Handle(
+            new GetPatientRefundQuery(patientId, refundId,
+                IncludeArchivedPatient: false), cancellationToken));
 
     [HttpPost]
     public async Task<ActionResult<PatientDetails>> Create(CreatePatientRequest request,

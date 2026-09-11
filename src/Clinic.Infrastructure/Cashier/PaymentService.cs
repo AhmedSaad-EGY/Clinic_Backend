@@ -294,6 +294,16 @@ public sealed class PaymentService(ClinicDbContext dbContext, TimeProvider timeP
             : Result.Success(await MapAsync(payment, cancellationToken));
     }
 
+    public async Task<Result<PaymentModel>> GetForPatientAsync(long patientId,
+        long paymentId, CancellationToken cancellationToken)
+    {
+        Payment? payment = await PaymentDetails().SingleOrDefaultAsync(item =>
+            item.Id == paymentId && item.PatientId == patientId, cancellationToken);
+        return payment is null
+            ? Result.Failure<PaymentModel>(CashierErrors.PaymentNotFound)
+            : Result.Success(await MapAsync(payment, cancellationToken));
+    }
+
     public async Task<Result<PaymentPage>> ListForShiftAsync(long actorUserId,
         long shiftId, bool adminOverride, int pageNumber, int pageSize,
         CancellationToken cancellationToken)

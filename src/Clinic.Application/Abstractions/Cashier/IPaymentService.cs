@@ -10,6 +10,8 @@ public interface IPaymentService
         PostPaymentInput input, bool adminOverride, CancellationToken cancellationToken);
     Task<Result<PaymentModel>> GetAsync(long actorUserId, long paymentId,
         bool adminOverride, CancellationToken cancellationToken);
+    Task<Result<PaymentModel>> GetForPatientAsync(long patientId, long paymentId,
+        CancellationToken cancellationToken);
     Task<Result<PaymentPage>> ListForShiftAsync(long actorUserId, long shiftId,
         bool adminOverride, int pageNumber, int pageSize,
         CancellationToken cancellationToken);

@@ -85,6 +85,7 @@ public static class ControllerResultExtensions
         "patients.note_not_found" => StatusCodes.Status404NotFound,
         "patients.treatment_history_not_found" => StatusCodes.Status404NotFound,
         "patients.duplicate_primary_phone" => StatusCodes.Status409Conflict,
+        "patients.duplicate_phone" => StatusCodes.Status409Conflict,
         "patients.concurrency_conflict" => StatusCodes.Status409Conflict,
         "appointments.not_authenticated" => StatusCodes.Status401Unauthorized,
         "appointments.not_found" => StatusCodes.Status404NotFound,

@@ -97,6 +97,8 @@ public sealed class ApprovalCommandHandlerTests
         public Task<Result<RefundModel>> GetAsync(long actorUserId, long refundId,
             bool adminOverride, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
+        public Task<Result<RefundModel>> GetForPatientAsync(long patientId, long refundId,
+            CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<Result<RefundPage>> ListForShiftAsync(long actorUserId,
             long shiftId, bool adminOverride, int pageNumber, int pageSize,
             CancellationToken cancellationToken) => throw new NotSupportedException();

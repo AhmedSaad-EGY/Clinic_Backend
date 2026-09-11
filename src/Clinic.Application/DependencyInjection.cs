@@ -77,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<CreatePatientCommandHandler>();
         services.AddScoped<UpdatePatientCommandHandler>();
         services.AddScoped<ArchivePatientCommandHandler>();
+        services.AddScoped<RestorePatientCommandHandler>();
         services.AddScoped<CreatePatientNoteCommandHandler>();
         services.AddScoped<ArchivePatientNoteCommandHandler>();
         services.AddScoped<CreateTreatmentHistoryCommandHandler>();
@@ -85,6 +86,9 @@ public static class DependencyInjection
         services.AddScoped<GetPatientQueryHandler>();
         services.AddScoped<ListPatientNotesQueryHandler>();
         services.AddScoped<ListTreatmentHistoryQueryHandler>();
+        services.AddScoped<GetPatientTimelineQueryHandler>();
+        services.AddScoped<GetPatientPaymentQueryHandler>();
+        services.AddScoped<GetPatientRefundQueryHandler>();
         services.AddScoped<CheckAppointmentAvailabilityQueryHandler>();
         services.AddScoped<CreateAppointmentCommandHandler>();
         services.AddScoped<UpdateAppointmentCommandHandler>();

@@ -27,6 +27,13 @@ public sealed record PatientSummary(
     bool IsArchived,
     string RowVersion);
 
+public sealed record ExistingPatientReference(
+    long Id,
+    string FileNumber,
+    string FullName,
+    int CurrentAge,
+    bool IsArchived);
+
 public sealed record PatientDetails(
     long Id,
     string FileNumber,

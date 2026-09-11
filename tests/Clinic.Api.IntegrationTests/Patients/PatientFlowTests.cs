@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Clinic.Api.IntegrationTests.Identity;
+using Clinic.Application.Abstractions.Patients;
 using Clinic.Domain.Patients;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
@@ -30,7 +31,7 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
         PatientResponse first = await CreatePatientAsync(admin, "أحمد الأول",
             "+20 1012345678", "01111111111");
         PatientResponse second = await CreatePatientAsync(admin, "منى الثانية",
-            "01022222222", "01111111111");
+            "01022222222", "01122222222");
         Assert.Equal("000001", first.FileNumber);
         Assert.Equal("000002", second.FileNumber);
         Assert.Equal("01012345678", first.PrimaryPhoneNumber);
@@ -38,6 +39,27 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
         using HttpResponseMessage duplicate = await PostAsync(admin, "/api/patients",
             PatientRequest("مريض مكرر", "01012345678", null));
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        ExistingPatientProblem duplicateBody = await duplicate.Content
+            .ReadFromJsonAsync<ExistingPatientProblem>() ??
+            throw new InvalidOperationException("Missing duplicate response.");
+        Assert.Equal(first.Id, duplicateBody.ExistingPatient.Id);
+
+        using HttpResponseMessage crossFieldDuplicate = await PostAsync(admin,
+            "/api/patients", PatientRequest("مريض مكرر برقم ثانوي",
+                "01111111111", null));
+        Assert.Equal(HttpStatusCode.Conflict, crossFieldDuplicate.StatusCode);
+
+        HttpResponseMessage[] competingPatients = await Task.WhenAll(
+            PostAsync(admin, "/api/patients",
+                PatientRequest("تنافس أساسي", "01077777777", null)),
+            PostAsync(admin, "/api/patients",
+                PatientRequest("تنافس ثانوي", "01088888888", "01077777777")));
+        Assert.Single(competingPatients, item => item.StatusCode == HttpStatusCode.OK);
+        Assert.Single(competingPatients, item => item.StatusCode == HttpStatusCode.Conflict);
+        foreach (HttpResponseMessage response in competingPatients)
+        {
+            response.Dispose();
+        }
 
         PatientPageResponse<PatientResponse>? primarySearch = await admin.GetFromJsonAsync<
             PatientPageResponse<PatientResponse>>(
@@ -46,7 +68,7 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
         PatientPageResponse<PatientResponse>? secondarySearch = await admin.GetFromJsonAsync<
             PatientPageResponse<PatientResponse>>(
                 "/api/patients?search=01111111111&pageNumber=1&pageSize=20");
-        Assert.Empty(secondarySearch?.Items ?? []);
+        Assert.Single(secondarySearch?.Items ?? []);
 
         await PostAndReadAsync<CreateSecretaryRequest, SecretaryResponse>(admin,
             "/api/admin/secretaries", new CreateSecretaryRequest("سكرتيرة المرضى",
@@ -89,6 +111,23 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
             $"/api/patients/{first.Id}/treatment-history",
             new CreateTreatmentRequest(new DateOnly(2999, 1, 1), "تاريخ غير صحيح"));
         Assert.Equal(HttpStatusCode.BadRequest, futureTreatment.StatusCode);
+
+        PatientTimelineResponse staffTimeline = await GetAndReadAsync<PatientTimelineResponse>(
+            secretary, $"/api/patients/{first.Id}/timeline");
+        Assert.Equal(2, staffTimeline?.TotalCount);
+        Assert.DoesNotContain(staffTimeline!.Items,
+            item => item.Summary.Contains("سر طبي", StringComparison.Ordinal));
+
+        PatientTimelineResponse adminTimeline = await GetAndReadAsync<PatientTimelineResponse>(
+            admin, $"/api/admin/patients/{first.Id}/timeline");
+        Assert.Equal(3, adminTimeline?.TotalCount);
+        Assert.Contains(adminTimeline!.Items,
+            item => item.Summary.Contains("سر طبي", StringComparison.Ordinal));
+
+        PatientTimelineResponse daylightSavingTimeline = await GetAndReadAsync<
+            PatientTimelineResponse>(secretary, $"/api/patients/{first.Id}/timeline" +
+                "?from=2026-04-24&to=2026-04-24");
+        Assert.Empty(daylightSavingTimeline.Items);
 
         PatientResponse updated = await PutAndReadAsync<UpdatePatientRequest, PatientResponse>(
             secretary, $"/api/patients/{first.Id}", UpdateRequest(first, "أحمد المعدل"));
@@ -134,6 +173,19 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
             PatientRequest("بعد الأرشفة", "01012345678", null));
         Assert.Equal(HttpStatusCode.Conflict, stillReservedPhone.StatusCode);
 
+        PatientTimelineResponse archivedTimeline = await GetAndReadAsync<PatientTimelineResponse>(
+            admin,
+                $"/api/admin/patients/{first.Id}/timeline?includeArchived=true");
+        Assert.Equal(3, archivedTimeline?.TotalCount);
+
+        PatientResponse restored = await PostAndReadAsync<ArchiveRequest, PatientResponse>(
+            admin, $"/api/admin/patients/{first.Id}/restore",
+            new ArchiveRequest("إعادة فتح الملف", archivedForAdmin!.RowVersion));
+        Assert.False(restored.IsArchived);
+        PatientTimelineResponse restoredStaffTimeline = await GetAndReadAsync<PatientTimelineResponse>(
+            secretary, $"/api/patients/{first.Id}/timeline");
+        Assert.Single(restoredStaffTimeline?.Items ?? []);
+
         await VerifyAuditDoesNotCopySensitiveTextAsync();
         await VerifyDatabaseConstraintsAsync(first.Id);
     }
@@ -161,6 +213,9 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
 
         await Assert.ThrowsAsync<SqlException>(() => dbContext.Database.ExecuteSqlInterpolatedAsync(
             $"INSERT INTO [patients].[Patients] ([FullName], [PrimaryPhoneNumber], [BirthDate], [Gender], [IsArchived], [CreatedByUserId], [CreatedAt]) VALUES ({"هاتف مكرر"}, {"01012345678"}, {new DateOnly(1990, 1, 1)}, {1}, {false}, {actorUserId}, {now})"));
+
+        await Assert.ThrowsAsync<SqlException>(() => dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"INSERT INTO [patients].[Patients] ([FullName], [PrimaryPhoneNumber], [SecondaryPhoneNumber], [AgeAtRegistration], [AgeRecordedAt], [Gender], [IsArchived], [CreatedByUserId], [CreatedAt]) VALUES ({"هاتف ثانوي مكرر"}, {"01066666666"}, {"01111111111"}, {25}, {new DateOnly(2026, 9, 6)}, {1}, {false}, {actorUserId}, {now})"));
 
         await Assert.ThrowsAsync<SqlException>(() => dbContext.Database.ExecuteSqlInterpolatedAsync(
             $"INSERT INTO [patients].[Patients] ([FullName], [PrimaryPhoneNumber], [SecondaryPhoneNumber], [AgeAtRegistration], [AgeRecordedAt], [Gender], [IsArchived], [CreatedByUserId], [CreatedAt]) VALUES ({"رقمان متساويان"}, {"01044444444"}, {"01044444444"}, {25}, {new DateOnly(2026, 9, 6)}, {1}, {false}, {actorUserId}, {now})"));
@@ -206,6 +261,17 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
         string body = await response.Content.ReadAsStringAsync();
         Assert.True(response.StatusCode == HttpStatusCode.OK,
             $"Expected 200 from {uri}, received {(int)response.StatusCode}: {body}");
+        return await response.Content.ReadFromJsonAsync<TResponse>() ??
+            throw new InvalidOperationException("The API response was empty.");
+    }
+
+    private static async Task<TResponse> GetAndReadAsync<TResponse>(HttpClient client,
+        string uri)
+    {
+        using HttpResponseMessage response = await client.GetAsync(uri);
+        string body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.IsSuccessStatusCode,
+            $"Expected success from {uri}, received {(int)response.StatusCode}: {body}");
         return await response.Content.ReadFromJsonAsync<TResponse>() ??
             throw new InvalidOperationException("The API response was empty.");
     }
@@ -274,4 +340,11 @@ public sealed class PatientFlowTests : IClassFixture<IdentitySqlServerFixture>
         string RowVersion);
     private sealed record TreatmentResponse(long Id, string RowVersion);
     private sealed record PatientPageResponse<T>(IReadOnlyCollection<T> Items, int TotalCount);
+    private sealed record ExistingPatientProblem(ExistingPatientResponse ExistingPatient);
+    private sealed record ExistingPatientResponse(long Id, string FileNumber,
+        string FullName, int CurrentAge, bool IsArchived);
+    private sealed record PatientTimelineResponse(
+        IReadOnlyCollection<PatientTimelineItemResponse> Items, int TotalCount);
+    private sealed record PatientTimelineItemResponse(PatientTimelineRecordType RecordType,
+        string Summary);
 }

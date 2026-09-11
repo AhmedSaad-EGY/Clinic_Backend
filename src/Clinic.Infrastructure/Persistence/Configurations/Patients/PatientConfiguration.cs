@@ -44,6 +44,9 @@ public sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .HasDatabaseName("UX_Patients_FileNumber");
         builder.HasIndex(item => item.PrimaryPhoneNumber).IsUnique()
             .HasDatabaseName("UX_Patients_PrimaryPhoneNumber");
+        builder.HasIndex(item => item.SecondaryPhoneNumber).IsUnique()
+            .HasFilter("[SecondaryPhoneNumber] IS NOT NULL")
+            .HasDatabaseName("UX_Patients_SecondaryPhoneNumber");
         builder.HasIndex(item => item.FullName).HasDatabaseName("IX_Patients_FullName");
         builder.HasIndex(item => new { item.Area, item.Gender })
             .HasDatabaseName("IX_Patients_Area_Gender");

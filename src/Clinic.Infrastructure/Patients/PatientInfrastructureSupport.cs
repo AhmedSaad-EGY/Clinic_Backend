@@ -32,10 +32,12 @@ internal static class PatientInfrastructureSupport
 
         if (exception.InnerException is SqlException sqlException &&
             sqlException.Number is 2601 or 2627 &&
-            sqlException.Message.Contains("UX_Patients_PrimaryPhoneNumber",
-                StringComparison.Ordinal))
+            (sqlException.Message.Contains("UX_Patients_PrimaryPhoneNumber",
+                 StringComparison.Ordinal) ||
+             sqlException.Message.Contains("UX_Patients_SecondaryPhoneNumber",
+                 StringComparison.Ordinal)))
         {
-            return PatientErrors.DuplicatePrimaryPhone;
+            return PatientErrors.DuplicatePhoneConflict;
         }
 
         throw new InvalidOperationException("Patient persistence failed.", exception);
@@ -43,6 +45,17 @@ internal static class PatientInfrastructureSupport
 
     public static DateOnly ClinicDate(DateTimeOffset instant) => DateOnly.FromDateTime(
         TimeZoneInfo.ConvertTime(instant, ClinicTimeZone).DateTime);
+
+    public static DateTimeOffset ClinicDayStartUtc(DateOnly date)
+    {
+        DateTime local = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
+        while (ClinicTimeZone.IsInvalidTime(local))
+        {
+            local = local.AddMinutes(1);
+        }
+
+        return new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(local, ClinicTimeZone));
+    }
 
     private static TimeZoneInfo ResolveClinicTimeZone()
     {
@@ -81,7 +94,7 @@ internal static class PatientMapper
         item.PatientId, item.EventDate, item.Description, item.CreatedByUserId, item.CreatedAt,
         item.IsArchived, Convert.ToBase64String(item.RowVersion));
 
-    private static string FormatFileNumber(long fileNumber) =>
+    internal static string FormatFileNumber(long fileNumber) =>
         fileNumber.ToString("D6", CultureInfo.InvariantCulture);
 
 }
@@ -91,6 +104,7 @@ internal static class PatientAuditActions
     public const string PatientCreated = "patients.patient.created";
     public const string PatientUpdated = "patients.patient.updated";
     public const string PatientArchived = "patients.patient.archived";
+    public const string PatientRestored = "patients.patient.restored";
     public const string NoteCreated = "patients.note.created";
     public const string NoteArchived = "patients.note.archived";
     public const string TreatmentHistoryCreated = "patients.treatment_history.created";

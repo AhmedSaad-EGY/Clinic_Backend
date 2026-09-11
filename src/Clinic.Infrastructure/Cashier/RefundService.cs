@@ -219,6 +219,17 @@ public sealed class RefundService(ClinicDbContext dbContext, TimeProvider timePr
             : Result.Success(await MapAsync(refund, cancellationToken));
     }
 
+    public async Task<Result<RefundModel>> GetForPatientAsync(long patientId,
+        long refundId, CancellationToken cancellationToken)
+    {
+        Refund? refund = await RefundDetails().SingleOrDefaultAsync(item =>
+            item.Id == refundId && item.AppointmentAllocations.Any(allocation =>
+                allocation.OriginalAllocation.PatientId == patientId), cancellationToken);
+        return refund is null
+            ? Result.Failure<RefundModel>(CashierErrors.RefundNotFound)
+            : Result.Success(await MapAsync(refund, cancellationToken));
+    }
+
     public async Task<Result<RefundPage>> ListForShiftAsync(long actorUserId,
         long shiftId, bool adminOverride, int pageNumber, int pageSize,
         CancellationToken cancellationToken)

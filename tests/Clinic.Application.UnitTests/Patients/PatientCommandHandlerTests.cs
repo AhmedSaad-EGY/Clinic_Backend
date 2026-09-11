@@ -63,6 +63,20 @@ public sealed class PatientCommandHandlerTests
         Assert.Equal("patients.validation", result.Error.Code);
     }
 
+    [Fact]
+    public async Task RestoreRequiresReasonAndValidRowVersion()
+    {
+        FakePatientService service = new();
+        RestorePatientCommandHandler handler = new(new FakeCurrentUser(7), service);
+
+        Result<PatientDetails> result = await handler.Handle(
+            new RestorePatientCommand(1, " ", "invalid"), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("patients.validation", result.Error.Code);
+        Assert.False(service.RestoreWasCalled);
+    }
+
     private static PatientInput ValidInput() => new("مريض", "01012345678", null, null,
         30, PatientGender.Male, null, null, null, null, null);
 
@@ -75,6 +89,7 @@ public sealed class PatientCommandHandlerTests
     private sealed class FakePatientService : IPatientAdministrationService
     {
         public PatientInput? CreatedInput { get; private set; }
+        public bool RestoreWasCalled { get; private set; }
 
         public Task<Result<PatientDetails>> CreatePatientAsync(long actorUserId,
             PatientInput input, CancellationToken cancellationToken)
@@ -90,6 +105,14 @@ public sealed class PatientCommandHandlerTests
         public Task<Result> ArchivePatientAsync(long actorUserId, long patientId, string reason,
             byte[] expectedRowVersion, CancellationToken cancellationToken) =>
             Task.FromResult(Result.Success());
+
+        public Task<Result<PatientDetails>> RestorePatientAsync(long actorUserId,
+            long patientId, string reason, byte[] expectedRowVersion,
+            CancellationToken cancellationToken)
+        {
+            RestoreWasCalled = true;
+            return Task.FromResult(Result.Success(Model()));
+        }
 
         public Task<Result<SensitiveNoteReceipt>> CreateNoteAsync(long actorUserId,
             long patientId, string noteText, PatientNoteVisibility visibility,

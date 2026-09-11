@@ -94,6 +94,7 @@ public static class DependencyInjection
         services.AddScoped<ISchedulingQueryService, SchedulingQueryService>();
         services.AddScoped<IPatientAdministrationService, PatientAdministrationService>();
         services.AddScoped<IPatientQueryService, PatientQueryService>();
+        services.AddScoped<IPatientTimelineQueryService, PatientTimelineQueryService>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<AppointmentImpactService>();
         services.AddScoped<IShiftService, ShiftService>();

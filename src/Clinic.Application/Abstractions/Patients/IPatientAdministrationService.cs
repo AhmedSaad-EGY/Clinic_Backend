@@ -11,6 +11,8 @@ public interface IPatientAdministrationService
         PatientInput input, byte[] expectedRowVersion, CancellationToken cancellationToken);
     Task<Result> ArchivePatientAsync(long actorUserId, long patientId, string reason,
         byte[] expectedRowVersion, CancellationToken cancellationToken);
+    Task<Result<PatientDetails>> RestorePatientAsync(long actorUserId, long patientId,
+        string reason, byte[] expectedRowVersion, CancellationToken cancellationToken);
     Task<Result<SensitiveNoteReceipt>> CreateNoteAsync(long actorUserId, long patientId,
         string noteText, PatientNoteVisibility visibility, CancellationToken cancellationToken);
     Task<Result> ArchiveNoteAsync(long actorUserId, long noteId, string reason,

@@ -22,31 +22,27 @@ public sealed class PatientAdministrationService : IPatientAdministrationService
     public async Task<Result<PatientDetails>> CreatePatientAsync(long actorUserId,
         PatientInput input, CancellationToken cancellationToken)
     {
-        if (await _dbContext.Patients.AnyAsync(
-            item => item.PrimaryPhoneNumber == input.PrimaryPhoneNumber, cancellationToken))
-        {
-            return Result.Failure<PatientDetails>(PatientErrors.DuplicatePrimaryPhone);
-        }
-
-        DateTimeOffset now = _timeProvider.GetUtcNow();
-        DateOnly today = PatientInfrastructureSupport.ClinicDate(now);
-        Patient patient;
-        try
-        {
-            patient = CreatePatient(input, actorUserId, today, now);
-        }
-        catch (DomainException exception)
-        {
-            return Result.Failure<PatientDetails>(PatientErrors.Validation(exception.Message));
-        }
-
         try
         {
             IExecutionStrategy strategy = _dbContext.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {
+                _dbContext.ChangeTracker.Clear();
                 await using IDbContextTransaction transaction =
                     await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                await AcquirePhoneLocksAsync(input.PrimaryPhoneNumber,
+                    input.SecondaryPhoneNumber, cancellationToken);
+                DateTimeOffset now = _timeProvider.GetUtcNow();
+                DateOnly today = PatientInfrastructureSupport.ClinicDate(now);
+                Patient? duplicate = await FindDuplicatePhoneOwnerAsync(
+                    input.PrimaryPhoneNumber, input.SecondaryPhoneNumber,
+                    excludedPatientId: null, cancellationToken);
+                if (duplicate is not null)
+                {
+                    return Result.Failure<PatientDetails>(DuplicatePhoneError(duplicate, today));
+                }
+
+                Patient patient = CreatePatient(input, actorUserId, today, now);
                 _dbContext.Patients.Add(patient);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 PatientInfrastructureSupport.AddAudit(_dbContext, actorUserId,
@@ -55,6 +51,10 @@ public sealed class PatientAdministrationService : IPatientAdministrationService
                 await transaction.CommitAsync(cancellationToken);
                 return Result.Success(PatientMapper.Details(patient, today));
             });
+        }
+        catch (DomainException exception)
+        {
+            return Result.Failure<PatientDetails>(PatientErrors.Validation(exception.Message));
         }
         catch (DbUpdateException exception)
         {
@@ -67,36 +67,104 @@ public sealed class PatientAdministrationService : IPatientAdministrationService
         long patientId, PatientInput input, byte[] expectedRowVersion,
         CancellationToken cancellationToken)
     {
-        Patient? patient = await _dbContext.Patients.SingleOrDefaultAsync(
-            item => item.Id == patientId && !item.IsArchived, cancellationToken);
-        if (patient is null)
-        {
-            return Result.Failure<PatientDetails>(PatientErrors.PatientNotFound);
-        }
-
-        if (!PatientInfrastructureSupport.MatchesVersion(patient.RowVersion, expectedRowVersion))
-        {
-            return Result.Failure<PatientDetails>(PatientErrors.ConcurrencyConflict);
-        }
-
-        if (await _dbContext.Patients.AnyAsync(item => item.Id != patientId &&
-            item.PrimaryPhoneNumber == input.PrimaryPhoneNumber, cancellationToken))
-        {
-            return Result.Failure<PatientDetails>(PatientErrors.DuplicatePrimaryPhone);
-        }
-
-        DateTimeOffset now = _timeProvider.GetUtcNow();
-        DateOnly today = PatientInfrastructureSupport.ClinicDate(now);
         try
         {
-            patient.Update(input.FullName, input.PrimaryPhoneNumber,
-                input.SecondaryPhoneNumber, input.BirthDate, input.Age, input.Gender,
-                input.Area, input.Address, input.Email, input.GuardianName,
-                input.GuardianPhoneNumber, actorUserId, today, now);
-            PatientInfrastructureSupport.AddAudit(_dbContext, actorUserId,
-                PatientAuditActions.PatientUpdated, nameof(Patient), patient.Id, now);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return Result.Success(PatientMapper.Details(patient, today));
+            IExecutionStrategy strategy = _dbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                _dbContext.ChangeTracker.Clear();
+                await using IDbContextTransaction transaction =
+                    await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                await TransactionalResourceLock.AcquirePatientAsync(_dbContext,
+                    patientId, cancellationToken);
+                Patient? patient = await _dbContext.Patients.SingleOrDefaultAsync(
+                    item => item.Id == patientId && !item.IsArchived, cancellationToken);
+                if (patient is null)
+                {
+                    return Result.Failure<PatientDetails>(PatientErrors.PatientNotFound);
+                }
+
+                if (!PatientInfrastructureSupport.MatchesVersion(
+                        patient.RowVersion, expectedRowVersion))
+                {
+                    return Result.Failure<PatientDetails>(PatientErrors.ConcurrencyConflict);
+                }
+
+                await AcquirePhoneLocksAsync([
+                    patient.PrimaryPhoneNumber,
+                    patient.SecondaryPhoneNumber,
+                    input.PrimaryPhoneNumber,
+                    input.SecondaryPhoneNumber
+                ], cancellationToken);
+                DateTimeOffset now = _timeProvider.GetUtcNow();
+                DateOnly today = PatientInfrastructureSupport.ClinicDate(now);
+                Patient? duplicate = await FindDuplicatePhoneOwnerAsync(
+                    input.PrimaryPhoneNumber, input.SecondaryPhoneNumber,
+                    patientId, cancellationToken);
+                if (duplicate is not null)
+                {
+                    return Result.Failure<PatientDetails>(DuplicatePhoneError(duplicate, today));
+                }
+
+                patient.Update(input.FullName, input.PrimaryPhoneNumber,
+                    input.SecondaryPhoneNumber, input.BirthDate, input.Age, input.Gender,
+                    input.Area, input.Address, input.Email, input.GuardianName,
+                    input.GuardianPhoneNumber, actorUserId, today, now);
+                PatientInfrastructureSupport.AddAudit(_dbContext, actorUserId,
+                    PatientAuditActions.PatientUpdated, nameof(Patient), patient.Id, now);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return Result.Success(PatientMapper.Details(patient, today));
+            });
+        }
+        catch (DomainException exception)
+        {
+            return Result.Failure<PatientDetails>(PatientErrors.Validation(exception.Message));
+        }
+        catch (DbUpdateException exception)
+        {
+            return Result.Failure<PatientDetails>(
+                PatientInfrastructureSupport.MapDatabaseFailure(exception));
+        }
+    }
+
+    public async Task<Result<PatientDetails>> RestorePatientAsync(long actorUserId,
+        long patientId, string reason, byte[] expectedRowVersion,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            IExecutionStrategy strategy = _dbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                _dbContext.ChangeTracker.Clear();
+                await using IDbContextTransaction transaction =
+                    await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                await TransactionalResourceLock.AcquirePatientAsync(
+                    _dbContext, patientId, cancellationToken);
+                Patient? patient = await _dbContext.Patients.SingleOrDefaultAsync(
+                    item => item.Id == patientId && item.IsArchived, cancellationToken);
+                if (patient is null)
+                {
+                    return Result.Failure<PatientDetails>(PatientErrors.PatientNotFound);
+                }
+
+                if (!PatientInfrastructureSupport.MatchesVersion(
+                        patient.RowVersion, expectedRowVersion))
+                {
+                    return Result.Failure<PatientDetails>(PatientErrors.ConcurrencyConflict);
+                }
+
+                DateTimeOffset now = _timeProvider.GetUtcNow();
+                DateOnly today = PatientInfrastructureSupport.ClinicDate(now);
+                patient.Restore(actorUserId, now);
+                PatientInfrastructureSupport.AddAudit(_dbContext, actorUserId,
+                    PatientAuditActions.PatientRestored, nameof(Patient), patient.Id,
+                    now, reason);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return Result.Success(PatientMapper.Details(patient, today));
+            });
         }
         catch (DomainException exception)
         {
@@ -298,4 +366,41 @@ public sealed class PatientAdministrationService : IPatientAdministrationService
         input.PrimaryPhoneNumber, input.SecondaryPhoneNumber, input.BirthDate, input.Age,
         input.Gender, input.Area, input.Address, input.Email, input.GuardianName,
         input.GuardianPhoneNumber, actorUserId, today, now);
+
+    private Task AcquirePhoneLocksAsync(string primaryPhoneNumber,
+        string? secondaryPhoneNumber, CancellationToken cancellationToken) =>
+        AcquirePhoneLocksAsync([primaryPhoneNumber, secondaryPhoneNumber],
+            cancellationToken);
+
+    private async Task AcquirePhoneLocksAsync(IEnumerable<string?> phoneNumbers,
+        CancellationToken cancellationToken)
+    {
+        foreach (string phoneNumber in phoneNumbers.Where(item => item is not null)
+            .Select(item => item!).Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal))
+        {
+            await TransactionalResourceLock.AcquirePatientPhoneAsync(_dbContext,
+                phoneNumber, cancellationToken);
+        }
+    }
+
+    private Task<Patient?> FindDuplicatePhoneOwnerAsync(string primaryPhoneNumber,
+        string? secondaryPhoneNumber, long? excludedPatientId,
+        CancellationToken cancellationToken)
+    {
+        string[] phoneNumbers = secondaryPhoneNumber is null
+            ? [primaryPhoneNumber]
+            : [primaryPhoneNumber, secondaryPhoneNumber];
+        return _dbContext.Patients.AsNoTracking().Where(item =>
+                (!excludedPatientId.HasValue || item.Id != excludedPatientId.Value) &&
+                (phoneNumbers.Contains(item.PrimaryPhoneNumber) ||
+                    item.SecondaryPhoneNumber != null &&
+                    phoneNumbers.Contains(item.SecondaryPhoneNumber)))
+            .OrderBy(item => item.Id).FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private static ResultError DuplicatePhoneError(Patient patient, DateOnly today) =>
+        PatientErrors.DuplicatePhone(new ExistingPatientReference(patient.Id,
+            PatientMapper.FormatFileNumber(patient.FileNumber), patient.FullName,
+            patient.GetCurrentAge(today), patient.IsArchived));
 }

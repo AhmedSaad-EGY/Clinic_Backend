@@ -48,6 +48,12 @@ internal static class TransactionalResourceLock
         CancellationToken cancellationToken) =>
         AcquireAsync(dbContext, $"clinic:patient:{patientId}", cancellationToken);
 
+    public static Task AcquirePatientPhoneAsync(
+        ClinicDbContext dbContext,
+        string phoneNumber,
+        CancellationToken cancellationToken) =>
+        AcquireAsync(dbContext, $"clinic:patient-phone:{phoneNumber}", cancellationToken);
+
     public static Task AcquireSecretaryAsync(
         ClinicDbContext dbContext,
         long secretaryUserId,

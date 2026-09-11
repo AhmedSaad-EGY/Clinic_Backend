@@ -1,4 +1,5 @@
 using Clinic.Application.Abstractions.Identity;
+using Clinic.Application.Abstractions.Cashier;
 using Clinic.Application.Abstractions.Patients;
 using Clinic.Application.Common;
 using Clinic.Application.Messaging;
@@ -130,5 +131,136 @@ public sealed class ListTreatmentHistoryQueryHandler
 
         return _service.ListTreatmentHistoryAsync(query.PatientId, query.IncludeArchived,
             query.PageNumber, query.PageSize, cancellationToken);
+    }
+}
+
+public sealed record GetPatientTimelineQuery(long PatientId, bool IncludeArchivedPatient,
+    bool IncludeAdminOnlyNotes, PatientTimelineFilter Filter)
+    : IQuery<PatientTimelinePage>;
+
+public sealed class GetPatientTimelineQueryHandler
+    : IQueryHandler<GetPatientTimelineQuery, PatientTimelinePage>
+{
+    private readonly ICurrentUser _currentUser;
+    private readonly IPatientTimelineQueryService _service;
+
+    public GetPatientTimelineQueryHandler(ICurrentUser currentUser,
+        IPatientTimelineQueryService service)
+    {
+        _currentUser = currentUser;
+        _service = service;
+    }
+
+    public Task<Result<PatientTimelinePage>> Handle(GetPatientTimelineQuery query,
+        CancellationToken cancellationToken)
+    {
+        Result<long> actor = PatientValidation.Actor(_currentUser);
+        Result validation = Validate(query.Filter);
+        if (actor.IsFailure || validation.IsFailure)
+        {
+            return Task.FromResult(Result.Failure<PatientTimelinePage>(
+                actor.IsFailure ? actor.Error : validation.Error));
+        }
+
+        return _service.GetAsync(query.PatientId, query.IncludeArchivedPatient,
+            query.IncludeAdminOnlyNotes, query.Filter, cancellationToken);
+    }
+
+    private static Result Validate(PatientTimelineFilter filter)
+    {
+        Result page = PatientValidation.Page(filter.PageNumber, filter.PageSize);
+        if (page.IsFailure)
+        {
+            return page;
+        }
+
+        if (filter.From.HasValue && filter.To.HasValue && filter.From > filter.To)
+        {
+            return Result.Failure(PatientErrors.Validation(
+                "تاريخ البداية يجب ألا يكون بعد تاريخ النهاية."));
+        }
+
+        if (filter.To == DateOnly.MaxValue || filter.RecordTypes.Any(type =>
+            !Enum.IsDefined(type)))
+        {
+            return Result.Failure(PatientErrors.Validation(
+                "مرشحات السجل الزمني غير صحيحة."));
+        }
+
+        return Result.Success();
+    }
+}
+
+public sealed record GetPatientPaymentQuery(long PatientId, long PaymentId,
+    bool IncludeArchivedPatient)
+    : IQuery<PaymentModel>;
+
+public sealed class GetPatientPaymentQueryHandler
+    : IQueryHandler<GetPatientPaymentQuery, PaymentModel>
+{
+    private readonly ICurrentUser _currentUser;
+    private readonly IPaymentService _service;
+    private readonly IPatientQueryService _patientService;
+
+    public GetPatientPaymentQueryHandler(ICurrentUser currentUser, IPaymentService service,
+        IPatientQueryService patientService)
+    {
+        _currentUser = currentUser;
+        _service = service;
+        _patientService = patientService;
+    }
+
+    public async Task<Result<PaymentModel>> Handle(GetPatientPaymentQuery query,
+        CancellationToken cancellationToken)
+    {
+        Result<long> actor = PatientValidation.Actor(_currentUser);
+        if (actor.IsFailure)
+        {
+            return Result.Failure<PaymentModel>(actor.Error);
+        }
+
+        Result<PatientDetails> patient = await _patientService.GetPatientAsync(
+            query.PatientId, query.IncludeArchivedPatient, cancellationToken);
+        return patient.IsFailure
+            ? Result.Failure<PaymentModel>(patient.Error)
+            : await _service.GetForPatientAsync(query.PatientId, query.PaymentId,
+                cancellationToken);
+    }
+}
+
+public sealed record GetPatientRefundQuery(long PatientId, long RefundId,
+    bool IncludeArchivedPatient)
+    : IQuery<RefundModel>;
+
+public sealed class GetPatientRefundQueryHandler
+    : IQueryHandler<GetPatientRefundQuery, RefundModel>
+{
+    private readonly ICurrentUser _currentUser;
+    private readonly IRefundService _service;
+    private readonly IPatientQueryService _patientService;
+
+    public GetPatientRefundQueryHandler(ICurrentUser currentUser, IRefundService service,
+        IPatientQueryService patientService)
+    {
+        _currentUser = currentUser;
+        _service = service;
+        _patientService = patientService;
+    }
+
+    public async Task<Result<RefundModel>> Handle(GetPatientRefundQuery query,
+        CancellationToken cancellationToken)
+    {
+        Result<long> actor = PatientValidation.Actor(_currentUser);
+        if (actor.IsFailure)
+        {
+            return Result.Failure<RefundModel>(actor.Error);
+        }
+
+        Result<PatientDetails> patient = await _patientService.GetPatientAsync(
+            query.PatientId, query.IncludeArchivedPatient, cancellationToken);
+        return patient.IsFailure
+            ? Result.Failure<RefundModel>(patient.Error)
+            : await _service.GetForPatientAsync(query.PatientId, query.RefundId,
+                cancellationToken);
     }
 }
