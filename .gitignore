@@ -16,6 +16,8 @@ TestResults/
 .vscode/
 
 # Frontend
+/frontend/
+/graphify-out/
 node_modules/
 dist/
 .env
