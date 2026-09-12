@@ -28,13 +28,13 @@ public sealed partial class GlobalExceptionHandler : IExceptionHandler
         {
             statusCode = StatusCodes.Status400BadRequest;
             title = "تعذر تنفيذ الطلب لمخالفته إحدى قواعد العمل";
-            LogDomainFailure(_logger, exception.Message);
+            LogDomainFailure(_logger, exception.Message, httpContext.TraceIdentifier);
         }
         else
         {
             statusCode = StatusCodes.Status500InternalServerError;
             title = "حدث خطأ غير متوقع";
-            LogUnhandledException(_logger, exception);
+            LogUnhandledException(_logger, httpContext.TraceIdentifier, exception);
         }
 
         httpContext.Response.StatusCode = statusCode;
@@ -48,6 +48,7 @@ public sealed partial class GlobalExceptionHandler : IExceptionHandler
                 : null,
             Instance = httpContext.Request.Path,
         };
+        problem.Extensions["traceId"] = httpContext.TraceIdentifier;
 
         await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);
         return true;
@@ -56,12 +57,18 @@ public sealed partial class GlobalExceptionHandler : IExceptionHandler
     [LoggerMessage(
         EventId = 1000,
         Level = LogLevel.Warning,
-        Message = "A domain rule rejected the request: {Message}")]
-    private static partial void LogDomainFailure(ILogger logger, string message);
+        Message = "A domain rule rejected request {CorrelationId}: {Message}")]
+    private static partial void LogDomainFailure(
+        ILogger logger,
+        string message,
+        string correlationId);
 
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Error,
-        Message = "An unhandled exception occurred while processing the request.")]
-    private static partial void LogUnhandledException(ILogger logger, Exception exception);
+        Message = "An unhandled exception occurred while processing request {CorrelationId}.")]
+    private static partial void LogUnhandledException(
+        ILogger logger,
+        string correlationId,
+        Exception exception);
 }

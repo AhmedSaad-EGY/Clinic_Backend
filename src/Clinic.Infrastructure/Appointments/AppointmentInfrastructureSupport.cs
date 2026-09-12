@@ -75,7 +75,8 @@ internal static class AppointmentInfrastructureSupport
             .ThenInclude(item => item.Doctor)
         .Include(item => item.Services).ThenInclude(item => item.Devices)
         .Include(item => item.Services).ThenInclude(item => item.PackageSessionBooking)
-            .ThenInclude(item => item!.Session);
+            .ThenInclude(item => item!.Session)
+        .AsSplitQuery();
 
     public static bool IsDoctorAvailable(DateTimeOffset from, DateTimeOffset to,
         IReadOnlyCollection<DoctorSchedule> schedules,

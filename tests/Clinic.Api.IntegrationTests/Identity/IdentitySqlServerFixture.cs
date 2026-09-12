@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -50,7 +51,9 @@ public sealed class IdentitySqlServerFixture : IAsyncLifetime
                 services.AddDbContext<ClinicDbContext>(options =>
                     options.UseSqlServer(
                         connectionString,
-                        sqlOptions => sqlOptions.EnableRetryOnFailure()));
+                        sqlOptions => sqlOptions.EnableRetryOnFailure())
+                    .ConfigureWarnings(warnings => warnings.Throw(
+                        RelationalEventId.MultipleCollectionIncludeWarning)));
                 services.RemoveAll<TimeProvider>();
                 services.AddSingleton<TimeProvider>(Clock);
             });

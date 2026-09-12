@@ -157,9 +157,14 @@ public sealed class RefundService(ClinicDbContext dbContext, TimeProvider timePr
 
                 dbContext.AuditLogs.Add(CashierInfrastructureSupport.Audit(actorUserId,
                     "cashier.refund_posted", nameof(Refund), refund.Id, now,
-                    request.DecisionReason, new { refund.ApprovalRequestId,
-                        refund.OriginalPaymentId, refund.ExecutionShiftId,
-                        refund.Amount, refundTarget.AppointmentId }));
+                    request.DecisionReason, new
+                    {
+                        refund.ApprovalRequestId,
+                        refund.OriginalPaymentId,
+                        refund.ExecutionShiftId,
+                        refund.Amount,
+                        refundTarget.AppointmentId
+                    }));
                 AppointmentInfrastructureSupport.AddAudit(dbContext, actorUserId,
                     "appointments.refund_recorded", refundTarget.AppointmentId, now,
                     request.DecisionReason);
@@ -334,7 +339,8 @@ public sealed class RefundService(ClinicDbContext dbContext, TimeProvider timePr
             .ThenInclude(item => item.OriginalAllocation)
             .ThenInclude(item => item.PaymentMethod)
             .Include(item => item.AppointmentAllocations)
-            .ThenInclude(item => item.OriginalAllocation);
+            .ThenInclude(item => item.OriginalAllocation)
+            .AsSplitQuery();
     }
 
     private async Task<RefundModel> MapAsync(Refund refund,

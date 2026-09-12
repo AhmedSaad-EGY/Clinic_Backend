@@ -1,11 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using Clinic.Api.IntegrationTests.Identity;
+using Clinic.Application.Abstractions.Appointments;
 using Clinic.Domain.Appointments;
 using Clinic.Domain.Catalog;
+using Clinic.Domain.Discounts;
 using Clinic.Domain.Patients;
 using Clinic.Domain.Scheduling;
-using Clinic.Domain.Discounts;
 using Clinic.Infrastructure.Identity;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -203,6 +204,18 @@ public sealed class AppointmentFlowTests : IClassFixture<IdentitySqlServerFixtur
             .Where(item => item.AppointmentId == created.Id)
             .OrderBy(item => item.SequenceNumber)
             .Select(item => item.UnitPrice).ToArrayAsync());
+    }
+
+    [Fact]
+    public async Task RevalidatingSuspendedAppointmentsUsesSplitQueries()
+    {
+        await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
+        IAppointmentService service = scope.ServiceProvider
+            .GetRequiredService<IAppointmentService>();
+
+        var result = await service.RevalidateSuspendedAsync(null, null, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
     }
 
     private async Task<SeedData> SeedAsync()

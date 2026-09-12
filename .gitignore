@@ -4,6 +4,9 @@
 *.user
 *.suo
 *.nupkg
+*.publishSettings
+*.pubxml
+*.pubxml.user
 TestResults/
 .tmp/
 

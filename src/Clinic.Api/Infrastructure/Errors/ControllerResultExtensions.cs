@@ -39,6 +39,7 @@ public static class ControllerResultExtensions
             Detail = error.Description,
             Type = $"https://httpstatuses.com/{statusCode}"
         };
+        problemDetails.Extensions["traceId"] = controller.HttpContext.TraceIdentifier;
 
         if (error.Extensions is not null)
         {
