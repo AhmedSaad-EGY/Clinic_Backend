@@ -1,11 +1,11 @@
 # Clinic Project Working Agreement
 
 This file defines the mandatory engineering rules for every contributor and coding
-agent working in this repository. Its scope is the entire `F:\Clinic` workspace.
+agent working in this repository. Its scope is the entire `F:\Clinic\backend` workspace.
 
 ## 1. Workspace boundary
 
-- Work only inside `F:\Clinic`. Never create, move, or modify project artifacts
+- Work only inside `F:\Clinic\backend`. Never create, move, or modify project artifacts
   outside this directory.
 - Preserve existing user changes. Do not overwrite unrelated work.
 - Use absolute paths when reporting or opening project files.
@@ -173,7 +173,7 @@ unrelated operations.
 - Offline mode is read-only and never queues offline writes.
 
 The approved source of truth for entities and relationships is:
-`F:\Clinic\ERD\Clinic_ERD_Final.drawio`.
+`F:\Clinic\backend\docs\erd\Clinic_ERD_Final.drawio`.
 
 ## 10. Patterns and restraint
 
@@ -202,7 +202,7 @@ pattern ceremony.
 - Do not duplicate business rules across API, Application, and Domain.
 - Comments explain why, constraints, or non-obvious tradeoffs—not what the code says.
 - All warnings are errors. Do not suppress analyzers without a written justification.
-- Follow `F:\Clinic\.editorconfig` and central package versions.
+- Follow `F:\Clinic\backend\.editorconfig` and central package versions.
 
 ## 12. Testing requirements
 
@@ -216,7 +216,7 @@ pattern ceremony.
 - Do not delete or weaken an existing test merely to make a change pass.
 - Keep architecture tests updated when an explicitly approved boundary changes.
 
-Mandatory verification from `F:\Clinic`:
+Mandatory verification from `F:\Clinic\backend`:
 
 ```powershell
 dotnet restore Clinic.slnx

@@ -15,9 +15,9 @@ TestResults/
 .idea/
 .vscode/
 
-# Frontend
-/frontend/
+# Generated maps and local-only deployment material
 /graphify-out/
+.local/
 node_modules/
 dist/
 .env

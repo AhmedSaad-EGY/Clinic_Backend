@@ -40,8 +40,9 @@ tests/
   Clinic.Application.UnitTests/
   Clinic.ArchitectureTests/
   Clinic.Api.IntegrationTests/
-ERD/
-  Clinic_ERD_Final.drawio
+docs/
+  erd/
+    Clinic_ERD_Final.drawio
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the dependency rules and design decisions.
