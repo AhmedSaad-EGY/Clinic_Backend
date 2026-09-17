@@ -1,13 +1,3 @@
-using Clinic.Api.Contracts.Patients;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Features.Patients;
-using Clinic.Domain.Patients;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]

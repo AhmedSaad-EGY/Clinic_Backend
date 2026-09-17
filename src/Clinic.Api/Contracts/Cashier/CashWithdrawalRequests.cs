@@ -1,5 +1,3 @@
-using Clinic.Domain.Cashier;
-
 namespace Clinic.Api.Contracts.Cashier;
 
 public sealed record CreateCashWithdrawalRequest(decimal Amount, string Reason);

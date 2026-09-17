@@ -1,11 +1,3 @@
-using Clinic.Api.Contracts.ClinicalRecords;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Features.ClinicalRecords;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]
@@ -18,7 +10,7 @@ public sealed class AdminPrescriptionsController : ControllerBase
         CorrectPrescriptionRequest request, CorrectPrescriptionCommandHandler handler,
         CancellationToken cancellationToken)
     {
-        var result = await handler.Handle(new CorrectPrescriptionCommand(prescriptionId,
+        Result<PrescriptionModel> result = await handler.Handle(new CorrectPrescriptionCommand(prescriptionId,
             PrescriptionsController.Map(request.Content), request.Reason,
             request.MatchesDoctorPrescription, request.RowVersion), cancellationToken);
         return result.IsSuccess

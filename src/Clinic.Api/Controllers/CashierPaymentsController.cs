@@ -1,12 +1,3 @@
-using Clinic.Api.Contracts.Cashier;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Cashier;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]
@@ -61,7 +52,7 @@ public sealed class CashierPaymentsController : ControllerBase
 
     private static PostPaymentInput Map(PostPaymentRequest request) => new(null,
         request.AppointmentIds, request.PatientPackageIds ?? [],
-        request.MethodAllocations.Select(item =>
+        [.. request.MethodAllocations.Select(item =>
             new PaymentMethodInput(item.PaymentMethodId, item.Amount,
-                item.ReferenceNumber)).ToArray(), request.Note, Reason: null);
+                item.ReferenceNumber))], request.Note, Reason: null);
 }

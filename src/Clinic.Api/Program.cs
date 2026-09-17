@@ -1,15 +1,4 @@
-using Clinic.Api.Infrastructure.Configuration;
-using Clinic.Api.Infrastructure.Diagnostics;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Api.Infrastructure.Health;
-using Clinic.Api.Infrastructure.Identity;
-using Clinic.Application;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Infrastructure;
-using Clinic.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Mvc;
-
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 ProductionConfigurationValidator.Validate(

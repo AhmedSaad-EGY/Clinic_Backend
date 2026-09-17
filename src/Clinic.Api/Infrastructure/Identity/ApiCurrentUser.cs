@@ -1,7 +1,3 @@
-using System.Globalization;
-using System.Security.Claims;
-using Clinic.Application.Abstractions.Identity;
-
 namespace Clinic.Api.Infrastructure.Identity;
 
 public sealed class ApiCurrentUser : ICurrentUser

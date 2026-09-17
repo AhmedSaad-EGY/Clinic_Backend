@@ -1,5 +1,3 @@
-using Clinic.Domain.Packages;
-
 namespace Clinic.Api.Contracts.Packages;
 
 public sealed record PackageServiceRequest(long ServiceId, int SessionsIncluded,

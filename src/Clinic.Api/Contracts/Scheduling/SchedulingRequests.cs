@@ -1,5 +1,3 @@
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Api.Contracts.Scheduling;
 
 public sealed record CreateDoctorRequest(long DepartmentId, string Name, string? Phone);

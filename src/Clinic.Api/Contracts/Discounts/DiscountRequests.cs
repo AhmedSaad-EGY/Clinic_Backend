@@ -1,5 +1,3 @@
-using Clinic.Domain.Discounts;
-
 namespace Clinic.Api.Contracts.Discounts;
 
 public sealed record DiscountTargetsRequest(IReadOnlyCollection<long>? DepartmentIds,

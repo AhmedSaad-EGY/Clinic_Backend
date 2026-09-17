@@ -1,6 +1,3 @@
-using Clinic.Application.Common;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Infrastructure.Errors;
 
 public static class ControllerResultExtensions

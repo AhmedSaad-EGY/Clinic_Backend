@@ -1,6 +1,3 @@
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Api.Contracts.Cashier;
 
 public sealed record UpdateShiftPolicyRequest(int ClosingGraceMinutes,

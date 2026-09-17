@@ -1,12 +1,3 @@
-using Clinic.Api.Contracts.Appointments;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Appointments;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Appointments;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]
@@ -92,9 +83,9 @@ public sealed class AppointmentsController : ControllerBase
         DateTimeOffset startAt, IReadOnlyCollection<AppointmentLineRequest> services,
         FollowUpBookingRequest? followUp = null, long? patientPackageId = null,
         Guid? idempotencyKey = null, DiscountOverrideRequest? discountOverride = null) =>
-        new(patientId, departmentId, startAt, services.Select(item =>
+        new(patientId, departmentId, startAt, [.. services.Select(item =>
             new AppointmentLineInput(item.ServiceId, item.DoctorId, item.Quantity,
-                item.OptionalDeviceIds ?? [])).ToArray(), followUp is null ? null
+                item.OptionalDeviceIds ?? []))], followUp is null ? null
                     : new FollowUpBookingInput(followUp.FollowUpId, followUp.RowVersion),
             patientPackageId, idempotencyKey, discountOverride is null ? null :
                 new DiscountOverrideInput(discountOverride.Mode,

@@ -1,6 +1,3 @@
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Api.Contracts.Appointments;
 
 public sealed record AppointmentLineRequest(long ServiceId, long DoctorId, int Quantity,

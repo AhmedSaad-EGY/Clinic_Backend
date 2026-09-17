@@ -1,7 +1,3 @@
-using Clinic.Domain.Common;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Infrastructure.Errors;
 
 public sealed partial class GlobalExceptionHandler : IExceptionHandler

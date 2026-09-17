@@ -1,12 +1,3 @@
-using Clinic.Api.Contracts.Identity;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Identity.Authentication;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]

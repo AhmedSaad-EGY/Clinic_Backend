@@ -1,5 +1,3 @@
-using Clinic.Domain.Patients;
-
 namespace Clinic.Api.Contracts.Patients;
 
 public sealed record CreatePatientRequest(

@@ -1,14 +1,3 @@
-using Clinic.Api.Contracts.Scheduling;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Features.Scheduling.Closures;
-using Clinic.Application.Features.Scheduling.Exceptions;
-using Clinic.Application.Features.Scheduling.Queries;
-using Clinic.Application.Features.Scheduling.Schedules;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]

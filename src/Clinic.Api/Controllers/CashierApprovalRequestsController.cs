@@ -1,13 +1,3 @@
-using Clinic.Api.Contracts.Cashier;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Cashier;
-using Clinic.Domain.Approvals;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]
@@ -56,9 +46,9 @@ public sealed class CashierApprovalRequestsController : ControllerBase
         _ = Guid.TryParse(idempotencyKey, out Guid key);
         Result<PostedRefundModel> result = await handler.Handle(
             new ExecuteRefundCommand(key, new ExecuteRefundInput(requestId,
-                request.MethodAllocations.Select(item => new RefundMethodInput(
+                [.. request.MethodAllocations.Select(item => new RefundMethodInput(
                     item.OriginalAllocationId, item.Amount,
-                    item.ReferenceNumber)).ToArray(), request.Note)), token);
+                    item.ReferenceNumber))], request.Note)), token);
         if (result.IsFailure)
         {
             return this.ToActionResult(result);

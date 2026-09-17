@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Reporting;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Api.Contracts.Reporting;
 
 public sealed record FinancialReportRequest(DateOnly From, DateOnly To,

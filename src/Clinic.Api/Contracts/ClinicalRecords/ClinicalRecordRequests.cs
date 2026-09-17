@@ -1,5 +1,3 @@
-using Clinic.Domain.ClinicalRecords;
-
 namespace Clinic.Api.Contracts.ClinicalRecords;
 
 public sealed record PrescriptionItemRequest(string MedicineName,

@@ -1,11 +1,3 @@
-using Clinic.Api.Contracts.ClinicalRecords;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Features.ClinicalRecords;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]
@@ -19,7 +11,7 @@ public sealed class PrescriptionsController : ControllerBase
         CreatePrescriptionDraftCommandHandler handler,
         CancellationToken cancellationToken)
     {
-        var result = await handler.Handle(new CreatePrescriptionDraftCommand(
+        Result<PrescriptionModel> result = await handler.Handle(new CreatePrescriptionDraftCommand(
             request.AppointmentServiceId, Map(request.Content)), cancellationToken);
         return result.IsSuccess
             ? CreatedAtAction(nameof(Get), new { prescriptionId = result.Value.Id }, result.Value)
@@ -50,8 +42,8 @@ public sealed class PrescriptionsController : ControllerBase
             cancellationToken));
 
     internal static PrescriptionContentInput Map(PrescriptionContentRequest request) =>
-        new(request.Items.Select(item => new PrescriptionItemInput(item.MedicineName,
+        new([.. request.Items.Select(item => new PrescriptionItemInput(item.MedicineName,
             item.DoseAmount, item.DoseUnit, item.TimesPerDay, item.FrequencyText,
-            item.DurationText, item.FoodTiming, item.Instructions)).ToArray(),
+            item.DurationText, item.FoodTiming, item.Instructions))],
             request.ReturnDate, request.ReturnAfterDays);
 }

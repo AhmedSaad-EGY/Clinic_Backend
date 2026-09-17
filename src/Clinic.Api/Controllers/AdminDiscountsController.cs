@@ -1,13 +1,3 @@
-using Clinic.Api.Contracts.Discounts;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Discounts;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Discounts;
-using Clinic.Domain.Discounts;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
 
 [ApiController]

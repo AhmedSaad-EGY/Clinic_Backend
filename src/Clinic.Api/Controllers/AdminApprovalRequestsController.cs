@@ -1,14 +1,4 @@
-using Clinic.Api.Contracts.Cashier;
-using Clinic.Api.Infrastructure.Errors;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Features.Cashier;
-using Clinic.Domain.Approvals;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-
 namespace Clinic.Api.Controllers;
-
 [ApiController]
 [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
 [Route("api/admin/cashier/approval-requests")]

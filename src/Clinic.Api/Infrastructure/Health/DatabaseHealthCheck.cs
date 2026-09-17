@@ -1,7 +1,3 @@
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-
 namespace Clinic.Api.Infrastructure.Health;
 
 public sealed class DatabaseHealthCheck

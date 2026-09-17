@@ -1,5 +1,3 @@
-using Clinic.Domain.Catalog;
-
 namespace Clinic.Api.Contracts.Catalog;
 
 public sealed record CreateDepartmentRequest(

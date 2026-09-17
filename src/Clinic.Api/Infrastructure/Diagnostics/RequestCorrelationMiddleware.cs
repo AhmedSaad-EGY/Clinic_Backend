@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Clinic.Api.Infrastructure.Diagnostics;
 
 public sealed partial class RequestCorrelationMiddleware

@@ -1,5 +1,3 @@
-using System.Data.Common;
-
 namespace Clinic.Api.Infrastructure.Configuration;
 
 public static class ProductionConfigurationValidator
