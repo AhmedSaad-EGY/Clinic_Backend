@@ -1,5 +1,3 @@
-using Clinic.Domain.Discounts;
-
 namespace Clinic.Application.Abstractions.Discounts;
 
 public sealed record DiscountTargetInput(

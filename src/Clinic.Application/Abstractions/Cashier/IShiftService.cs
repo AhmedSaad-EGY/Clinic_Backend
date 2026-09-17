@@ -1,5 +1,3 @@
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Abstractions.Cashier;
 
 public interface IShiftService

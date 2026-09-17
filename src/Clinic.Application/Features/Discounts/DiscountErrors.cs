@@ -1,5 +1,3 @@
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Features.Discounts;
 
 public static class DiscountErrors

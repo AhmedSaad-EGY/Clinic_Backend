@@ -1,6 +1,3 @@
-using Clinic.Application.Common;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Application.Abstractions.Patients;
 
 public interface IPatientQueryService

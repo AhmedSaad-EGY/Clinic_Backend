@@ -1,6 +1,3 @@
-using Clinic.Application.Common;
-using Clinic.Domain.Catalog;
-
 namespace Clinic.Application.Abstractions.Catalog;
 
 public interface IServiceCatalogService

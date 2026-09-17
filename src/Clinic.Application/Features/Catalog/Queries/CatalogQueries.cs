@@ -1,7 +1,3 @@
-using Clinic.Application.Abstractions.Catalog;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Catalog.Queries;
 
 public sealed record ListDepartmentsQuery(

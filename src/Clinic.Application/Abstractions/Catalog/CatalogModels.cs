@@ -1,5 +1,3 @@
-using Clinic.Domain.Catalog;
-
 namespace Clinic.Application.Abstractions.Catalog;
 
 public sealed record DepartmentModel(

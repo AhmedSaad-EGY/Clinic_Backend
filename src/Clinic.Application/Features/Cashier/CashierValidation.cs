@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Domain.Cashier;
-
 namespace Clinic.Application.Features.Cashier;
 
 internal static class CashierValidation

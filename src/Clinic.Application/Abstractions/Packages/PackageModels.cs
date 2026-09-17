@@ -1,5 +1,3 @@
-using Clinic.Domain.Packages;
-
 namespace Clinic.Application.Abstractions.Packages;
 
 public sealed record PackageServiceInput(long ServiceId, int SessionsIncluded,

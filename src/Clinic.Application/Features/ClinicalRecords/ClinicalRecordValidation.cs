@@ -1,7 +1,3 @@
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Features.ClinicalRecords;
 
 public static class ClinicalRecordValidation

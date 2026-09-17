@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Application.Features.Patients;
 
 public sealed record CreatePatientCommand(PatientInput Input) : ICommand<PatientDetails>;

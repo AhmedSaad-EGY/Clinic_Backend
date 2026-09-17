@@ -1,7 +1,3 @@
-using Clinic.Application.Abstractions.Discounts;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Discounts;
 
 public sealed record GetDiscountQuery(long DiscountId) : IQuery<DiscountModel>;

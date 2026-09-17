@@ -1,6 +1,3 @@
-using Clinic.Domain.Approvals;
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Abstractions.Cashier;
 
 public sealed record RefundableMethodModel(long OriginalAllocationId,

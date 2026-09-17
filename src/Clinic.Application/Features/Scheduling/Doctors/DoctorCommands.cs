@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Scheduling.Doctors;
 
 public sealed record CreateDoctorCommand(long DepartmentId, string Name, string? Phone) : ICommand<DoctorModel>;

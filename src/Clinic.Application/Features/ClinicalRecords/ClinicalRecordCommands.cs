@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.ClinicalRecords;
 
 public sealed record CreatePrescriptionDraftCommand(long AppointmentServiceId,

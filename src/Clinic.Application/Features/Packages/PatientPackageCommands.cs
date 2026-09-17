@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.Packages;
-
 namespace Clinic.Application.Features.Packages;
 
 public sealed record RegisterPatientPackageCommand(long PatientId, long PackageId,

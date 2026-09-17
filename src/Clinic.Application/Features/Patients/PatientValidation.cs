@@ -1,11 +1,3 @@
-using System.Globalization;
-using System.Net.Mail;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Common;
-using Clinic.Domain.Common;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Application.Features.Patients;
 
 internal static class PatientValidation

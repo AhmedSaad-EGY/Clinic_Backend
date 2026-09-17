@@ -1,6 +1,3 @@
-using Clinic.Application.Common;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Application.Abstractions.Scheduling;
 
 public interface IScheduleAdministrationService

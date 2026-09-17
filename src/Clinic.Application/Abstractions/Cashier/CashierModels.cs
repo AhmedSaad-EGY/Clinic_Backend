@@ -1,6 +1,3 @@
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Application.Abstractions.Cashier;
 
 public sealed record GenerateShiftsInput(

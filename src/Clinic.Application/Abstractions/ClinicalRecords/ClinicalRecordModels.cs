@@ -1,6 +1,3 @@
-using Clinic.Application.Common;
-using Clinic.Domain.ClinicalRecords;
-
 namespace Clinic.Application.Abstractions.ClinicalRecords;
 
 public sealed record PrescriptionItemInput(string MedicineName,

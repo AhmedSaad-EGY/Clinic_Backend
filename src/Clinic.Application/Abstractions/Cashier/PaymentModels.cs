@@ -1,5 +1,3 @@
-using Clinic.Domain.Cashier;
-
 namespace Clinic.Application.Abstractions.Cashier;
 
 public sealed record PaymentMethodInput(long PaymentMethodId, decimal Amount,

@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Application.Features.Scheduling.Exceptions;
 
 public sealed record CreateDoctorExceptionCommand(long DoctorId, DateOnly Date, TimeOnly? StartTime, TimeOnly? EndTime, DoctorExceptionType Type, string? Reason, bool ConfirmAffectedAppointments = false) : ICommand<DoctorExceptionModel>;

@@ -1,5 +1,3 @@
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Abstractions.Appointments;
 
 public static class AppointmentErrors

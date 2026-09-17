@@ -1,6 +1,3 @@
-using Clinic.Application.Common;
-using Clinic.Domain.Packages;
-
 namespace Clinic.Application.Abstractions.Packages;
 
 public interface IPackageCommandService

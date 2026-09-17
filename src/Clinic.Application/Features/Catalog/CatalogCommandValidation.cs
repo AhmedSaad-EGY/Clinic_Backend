@@ -1,7 +1,3 @@
-using Clinic.Application.Abstractions.Catalog;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Features.Catalog;
 
 internal static class CatalogCommandValidation

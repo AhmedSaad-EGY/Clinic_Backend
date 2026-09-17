@@ -1,6 +1,3 @@
-using Clinic.Domain.Cashier;
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Abstractions.Cashier;
 
 public sealed record RefundMethodInput(long OriginalAllocationId, decimal Amount,

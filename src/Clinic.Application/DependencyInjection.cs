@@ -1,24 +1,3 @@
-using Clinic.Application.Features.Appointments;
-using Clinic.Application.Features.Cashier;
-using Clinic.Application.Features.Catalog.Departments;
-using Clinic.Application.Features.Catalog.Devices;
-using Clinic.Application.Features.Catalog.Queries;
-using Clinic.Application.Features.Catalog.Services;
-using Clinic.Application.Features.Catalog.Specializations;
-using Clinic.Application.Features.ClinicalRecords;
-using Clinic.Application.Features.Discounts;
-using Clinic.Application.Features.Identity.Authentication;
-using Clinic.Application.Features.Identity.Secretaries;
-using Clinic.Application.Features.Patients;
-using Clinic.Application.Features.Packages;
-using Clinic.Application.Features.Reporting;
-using Clinic.Application.Features.Scheduling.Closures;
-using Clinic.Application.Features.Scheduling.Doctors;
-using Clinic.Application.Features.Scheduling.Exceptions;
-using Clinic.Application.Features.Scheduling.Queries;
-using Clinic.Application.Features.Scheduling.Schedules;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Clinic.Application;
 
 public static class DependencyInjection

@@ -1,5 +1,3 @@
-using Clinic.Application.Common;
-
 namespace Clinic.Application.Features.ClinicalRecords;
 
 public static class ClinicalRecordErrors

@@ -1,7 +1,3 @@
-using Clinic.Application.Abstractions.Reporting;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Reporting;
 
 public static class ReportingErrors

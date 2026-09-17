@@ -1,5 +1,3 @@
-using Clinic.Domain.Patients;
-
 namespace Clinic.Application.Abstractions.Patients;
 
 public sealed record PatientInput(

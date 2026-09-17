@@ -1,6 +1,3 @@
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Application.Abstractions.Scheduling;
 
 public sealed record DoctorModel(

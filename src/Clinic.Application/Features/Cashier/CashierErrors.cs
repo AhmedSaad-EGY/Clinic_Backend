@@ -1,6 +1,3 @@
-using Clinic.Application.Common;
-using Clinic.Application.Abstractions.Cashier;
-
 namespace Clinic.Application.Features.Cashier;
 
 public static class CashierErrors

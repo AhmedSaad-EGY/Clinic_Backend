@@ -1,9 +1,3 @@
-using Clinic.Application.Common;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Application.Abstractions.Reporting;
 
 public enum ReportGroupBy

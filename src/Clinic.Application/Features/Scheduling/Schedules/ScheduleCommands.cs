@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Application.Features.Scheduling.Schedules;
 
 public sealed record CreateDoctorScheduleCommand(long DoctorId, ClinicDayOfWeek DayOfWeek, TimeOnly StartTime, TimeOnly EndTime, DateOnly EffectiveFrom, DateOnly? EffectiveTo) : ICommand<DoctorScheduleModel>;

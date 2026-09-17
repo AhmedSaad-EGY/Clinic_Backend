@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Catalog;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.Catalog;
-
 namespace Clinic.Application.Features.Catalog.Services;
 
 public sealed record CreateServiceCommand(

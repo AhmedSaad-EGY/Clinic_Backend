@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Scheduling.Closures;
 
 public sealed record CreateDepartmentClosureCommand(long DepartmentId, DateTimeOffset StartAt, DateTimeOffset EndAt, string Reason, bool ConfirmAffectedAppointments = false) : ICommand<DepartmentClosureModel>;

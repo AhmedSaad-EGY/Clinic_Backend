@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Application.Features.Scheduling;
 
 internal static class SchedulingValidation

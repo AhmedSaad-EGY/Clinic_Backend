@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.ClinicalRecords;
-
 namespace Clinic.Application.Features.ClinicalRecords;
 
 public sealed record GetPrescriptionQuery(long PrescriptionId,

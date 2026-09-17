@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Appointments;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Domain.Appointments;
-
 namespace Clinic.Application.Features.Appointments;
 
 internal static class AppointmentValidation

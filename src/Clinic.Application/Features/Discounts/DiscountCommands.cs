@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Discounts;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.Discounts;
-
 namespace Clinic.Application.Features.Discounts;
 
 public sealed record CreateDiscountCommand(DiscountDefinition Definition)

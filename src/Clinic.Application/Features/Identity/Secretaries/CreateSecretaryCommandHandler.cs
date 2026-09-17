@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using System.Net.Mail;
-
 namespace Clinic.Application.Features.Identity.Secretaries;
 
 public sealed class CreateSecretaryCommandHandler

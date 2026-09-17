@@ -1,10 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Application.Features.Patients;
 
 public sealed record ListPatientsQuery(string? Search, PatientGender? Gender, string? Area,

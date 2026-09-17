@@ -1,7 +1,3 @@
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Scheduling.Queries;
 
 public sealed record ListDoctorsQuery(

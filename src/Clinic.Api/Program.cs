@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 ProductionConfigurationValidator.Validate(

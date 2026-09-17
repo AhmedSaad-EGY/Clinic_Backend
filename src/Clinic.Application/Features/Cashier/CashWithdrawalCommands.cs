@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Cashier;
 
 public sealed record CreateCashWithdrawalCommand(Guid IdempotencyKey,

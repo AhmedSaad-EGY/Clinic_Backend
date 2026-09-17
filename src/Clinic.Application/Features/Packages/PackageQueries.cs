@@ -1,7 +1,3 @@
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Application.Common;
-using Clinic.Application.Messaging;
-
 namespace Clinic.Application.Features.Packages;
 
 public sealed record SearchAdminPackagesQuery(AdminPackageFilter Filter) : IQuery<PackagePage>;
