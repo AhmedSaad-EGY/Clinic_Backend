@@ -1,10 +1,3 @@
-using Clinic.Application.Abstractions.Catalog;
-using Clinic.Application.Common;
-using Clinic.Domain.Catalog;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Catalog;
 
 public sealed class SpecializationCatalogService : ISpecializationCatalogService

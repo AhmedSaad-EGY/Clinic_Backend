@@ -1,15 +1,3 @@
-using System.Globalization;
-using System.Text.Json;
-using Clinic.Application.Abstractions.Discounts;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Discounts;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Common;
-using Clinic.Domain.Discounts;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Discounts;
 
 public sealed class DiscountService : IDiscountService

@@ -1,18 +1,3 @@
-using System.Data;
-using System.Data.Common;
-using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Cashier;
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Common;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Cashier;
 
 public sealed class CashWithdrawalService(ClinicDbContext dbContext,

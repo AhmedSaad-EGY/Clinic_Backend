@@ -1,9 +1,3 @@
-using System.Security.Claims;
-using System.Globalization;
-using Clinic.Application.Abstractions.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-
 namespace Clinic.Infrastructure.Identity;
 
 public sealed class ApplicationUserClaimsPrincipalFactory

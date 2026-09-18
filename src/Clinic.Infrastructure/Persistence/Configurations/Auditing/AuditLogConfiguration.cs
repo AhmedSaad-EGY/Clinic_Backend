@@ -1,8 +1,3 @@
-using Clinic.Domain.Auditing;
-using Clinic.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Auditing;
 
 public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>

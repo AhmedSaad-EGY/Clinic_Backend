@@ -1,11 +1,3 @@
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Application.Common;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Packages;
 
 public sealed class PackageCommandService : IPackageCommandService

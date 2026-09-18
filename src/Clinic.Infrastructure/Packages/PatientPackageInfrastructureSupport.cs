@@ -1,11 +1,3 @@
-using System.Globalization;
-using System.Text.Json;
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Packages;
 
 internal static class PatientPackageInfrastructureSupport

@@ -1,15 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Reporting;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Reporting;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Approvals;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Infrastructure.Cashier;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Reporting;
 
 public sealed class ReportingQueryService(ClinicDbContext dbContext,

@@ -1,10 +1,3 @@
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Scheduling;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Scheduling;
 
 public sealed class SchedulingQueryService : ISchedulingQueryService

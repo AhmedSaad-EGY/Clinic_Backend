@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace Clinic.Infrastructure.Identity;
 
 public sealed class ApplicationUser : IdentityUser<long>

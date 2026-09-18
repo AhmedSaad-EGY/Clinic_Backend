@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Application.Common;
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Packages;
 
 public sealed class PatientPackageQueryService : IPatientPackageQueryService

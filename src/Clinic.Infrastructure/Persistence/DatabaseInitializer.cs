@@ -1,12 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Domain.Auditing;
-using Clinic.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Configuration;
-
 namespace Clinic.Infrastructure.Persistence;
 
 public sealed class DatabaseInitializer

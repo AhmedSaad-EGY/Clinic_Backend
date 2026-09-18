@@ -1,7 +1,3 @@
-using Clinic.Domain.Cashier;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Cashier;
 
 public sealed class RefundAppointmentAllocationConfiguration

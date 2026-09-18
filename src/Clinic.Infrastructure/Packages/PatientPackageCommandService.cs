@@ -1,16 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Application.Common;
-using Clinic.Domain.Common;
-using Clinic.Domain.Discounts;
-using Clinic.Domain.Packages;
-using Clinic.Domain.Patients;
-using Clinic.Infrastructure.Discounts;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Packages;
 
 public sealed class PatientPackageCommandService : IPatientPackageCommandService

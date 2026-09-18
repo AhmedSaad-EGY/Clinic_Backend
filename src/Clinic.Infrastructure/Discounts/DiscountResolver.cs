@@ -1,11 +1,3 @@
-using Clinic.Application.Abstractions.Appointments;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Common;
-using Clinic.Domain.Discounts;
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Discounts;
 
 public sealed class DiscountResolver(ClinicDbContext dbContext)

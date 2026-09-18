@@ -1,11 +1,3 @@
-using System.Globalization;
-using System.Text.Json;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Common;
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using AppointmentLine = Clinic.Domain.Appointments.AppointmentService;
 
 namespace Clinic.Infrastructure.Appointments;

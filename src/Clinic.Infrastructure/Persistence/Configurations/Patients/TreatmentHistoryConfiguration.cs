@@ -1,8 +1,3 @@
-using Clinic.Domain.Patients;
-using Clinic.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Patients;
 
 public sealed class TreatmentHistoryConfiguration : IEntityTypeConfiguration<TreatmentHistory>

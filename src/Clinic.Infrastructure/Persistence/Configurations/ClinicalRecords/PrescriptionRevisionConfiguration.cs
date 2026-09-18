@@ -1,8 +1,3 @@
-using Clinic.Domain.ClinicalRecords;
-using Clinic.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.ClinicalRecords;
 
 public sealed class PrescriptionRevisionConfiguration

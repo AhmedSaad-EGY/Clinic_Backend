@@ -1,6 +1,3 @@
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Persistence;
 
 internal static class TransactionalResourceLock

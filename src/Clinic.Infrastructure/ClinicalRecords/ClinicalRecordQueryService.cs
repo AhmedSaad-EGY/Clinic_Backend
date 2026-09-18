@@ -1,13 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Common;
-using Clinic.Application.Features.ClinicalRecords;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.ClinicalRecords;
-using Clinic.Infrastructure.Appointments;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.ClinicalRecords;
 
 public sealed class ClinicalRecordQueryService(ClinicDbContext dbContext,

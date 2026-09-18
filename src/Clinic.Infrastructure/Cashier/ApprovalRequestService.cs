@@ -1,17 +1,3 @@
-using System.Data;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Cashier;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Approvals;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Common;
-using Clinic.Infrastructure.Appointments;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Cashier;
 
 public sealed class ApprovalRequestService(

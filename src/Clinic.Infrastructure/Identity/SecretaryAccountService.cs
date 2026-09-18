@@ -1,13 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Identity;
 
 public sealed class SecretaryAccountService : ISecretaryAccountService

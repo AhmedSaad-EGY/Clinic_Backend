@@ -1,30 +1,5 @@
-using Clinic.Application.Abstractions.Appointments;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Catalog;
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Abstractions.Discounts;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Application.Abstractions.Persistence;
-using Clinic.Application.Abstractions.Reporting;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Infrastructure.Appointments;
-using Clinic.Infrastructure.Cashier;
-using Clinic.Infrastructure.Catalog;
-using Clinic.Infrastructure.ClinicalRecords;
-using Clinic.Infrastructure.Discounts;
-using Clinic.Infrastructure.Identity;
-using Clinic.Infrastructure.Patients;
-using Clinic.Infrastructure.Packages;
-using Clinic.Infrastructure.Persistence;
-using Clinic.Infrastructure.Reporting;
-using Clinic.Infrastructure.Scheduling;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using AppointmentService = Clinic.Infrastructure.Appointments.AppointmentService;
+using DiscountService = Clinic.Infrastructure.Discounts.DiscountService;
 
 namespace Clinic.Infrastructure;
 

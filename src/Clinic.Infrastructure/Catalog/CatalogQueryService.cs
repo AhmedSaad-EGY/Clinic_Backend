@@ -1,9 +1,3 @@
-using Clinic.Application.Abstractions.Catalog;
-using Clinic.Application.Common;
-using Clinic.Domain.Catalog;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Catalog;
 
 public sealed class CatalogQueryService : ICatalogQueryService

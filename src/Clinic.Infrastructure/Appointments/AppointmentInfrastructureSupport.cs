@@ -1,12 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Appointments;
-using Clinic.Application.Common;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Scheduling;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Appointments;
 
 internal static class AppointmentInfrastructureSupport

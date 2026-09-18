@@ -1,13 +1,3 @@
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Common;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Cashier;
-using Clinic.Domain.ClinicalRecords;
-using Clinic.Domain.Packages;
-using Clinic.Domain.Patients;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Patients;
 
 public sealed class PatientTimelineQueryService(

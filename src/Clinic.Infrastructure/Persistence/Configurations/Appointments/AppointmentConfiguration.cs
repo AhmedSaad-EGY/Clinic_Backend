@@ -1,10 +1,3 @@
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Patients;
-using Clinic.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Appointments;
 
 public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>

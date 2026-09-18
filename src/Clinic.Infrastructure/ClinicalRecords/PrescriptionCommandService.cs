@@ -1,17 +1,3 @@
-using System.Data;
-using System.Globalization;
-using Clinic.Application.Abstractions.ClinicalRecords;
-using Clinic.Application.Common;
-using Clinic.Application.Features.ClinicalRecords;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.ClinicalRecords;
-using Clinic.Domain.Common;
-using Clinic.Infrastructure.Appointments;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.ClinicalRecords;
 
 public sealed class PrescriptionCommandService(ClinicDbContext dbContext,

@@ -1,12 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Catalog;
-using Clinic.Application.Common;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Catalog;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Catalog;
 
 internal static class CatalogInfrastructureSupport

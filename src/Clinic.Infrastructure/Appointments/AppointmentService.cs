@@ -1,20 +1,3 @@
-using System.Data;
-using System.Security.Cryptography;
-using System.Text;
-using Clinic.Application.Abstractions.Appointments;
-using Clinic.Application.Common;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.ClinicalRecords;
-using Clinic.Domain.Common;
-using Clinic.Domain.Scheduling;
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Discounts;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Appointments;
 
 public sealed class AppointmentService : IAppointmentService

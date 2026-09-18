@@ -1,6 +1,3 @@
-using System.Globalization;
-using System.Text;
-
 namespace Clinic.Infrastructure.Identity;
 
 internal static class PhoneNumberNormalizer

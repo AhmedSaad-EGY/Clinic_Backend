@@ -1,18 +1,5 @@
-using Clinic.Application.Abstractions.Persistence;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Approvals;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.ClinicalRecords;
-using Clinic.Domain.Discounts;
-using Clinic.Domain.Patients;
-using Clinic.Domain.Packages;
-using Clinic.Domain.Scheduling;
-using Clinic.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+using AppointmentService = Clinic.Domain.Appointments.AppointmentService;
+using DiscountService = Clinic.Domain.Discounts.DiscountService;
 
 namespace Clinic.Infrastructure.Persistence;
 

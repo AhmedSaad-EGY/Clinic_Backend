@@ -1,6 +1,4 @@
-using Clinic.Domain.Discounts;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using DiscountService = Clinic.Domain.Discounts.DiscountService;
 
 namespace Clinic.Infrastructure.Persistence.Configurations.Discounts;
 

@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace Clinic.Infrastructure.Identity;
 
 public sealed class ApplicationRole : IdentityRole<long>

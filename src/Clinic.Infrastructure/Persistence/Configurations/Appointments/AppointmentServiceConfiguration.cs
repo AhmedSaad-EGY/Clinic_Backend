@@ -1,11 +1,4 @@
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Discounts;
-using Clinic.Infrastructure.Identity;
-using Clinic.Domain.Packages;
-using Clinic.Domain.Scheduling;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using AppointmentService = Clinic.Domain.Appointments.AppointmentService;
 
 namespace Clinic.Infrastructure.Persistence.Configurations.Appointments;
 

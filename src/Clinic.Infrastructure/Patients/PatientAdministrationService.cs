@@ -1,11 +1,3 @@
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Common;
-using Clinic.Domain.Common;
-using Clinic.Domain.Patients;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Patients;
 
 public sealed class PatientAdministrationService : IPatientAdministrationService

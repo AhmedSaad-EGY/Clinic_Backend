@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Appointments;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
 namespace Clinic.Infrastructure.Appointments;
 
 public sealed partial class SuspendedAppointmentRevalidationWorker(

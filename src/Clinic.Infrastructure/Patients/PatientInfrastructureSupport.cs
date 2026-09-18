@@ -1,12 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Patients;
-using Clinic.Application.Common;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Patients;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Patients;
 
 internal static class PatientInfrastructureSupport

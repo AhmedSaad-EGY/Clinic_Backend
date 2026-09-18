@@ -1,17 +1,3 @@
-using System.Data;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Application.Common;
-using Clinic.Application.Features.Cashier;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Domain.Common;
-using Clinic.Domain.Scheduling;
-using Clinic.Infrastructure.Identity;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Cashier;
 
 public sealed class ShiftService(ClinicDbContext dbContext, TimeProvider timeProvider)

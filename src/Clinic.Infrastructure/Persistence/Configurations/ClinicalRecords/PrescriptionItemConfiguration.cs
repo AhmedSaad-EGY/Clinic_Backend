@@ -1,7 +1,3 @@
-using Clinic.Domain.ClinicalRecords;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.ClinicalRecords;
 
 public sealed class PrescriptionItemConfiguration

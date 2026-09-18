@@ -1,8 +1,3 @@
-using Clinic.Application.Abstractions.Identity;
-using Clinic.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Identity;
 
 public sealed class ApplicationRoleConfiguration : IEntityTypeConfiguration<ApplicationRole>

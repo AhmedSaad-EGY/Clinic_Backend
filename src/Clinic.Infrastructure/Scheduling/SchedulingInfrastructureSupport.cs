@@ -1,11 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Scheduling;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Scheduling;
 
 internal static class SchedulingInfrastructureSupport

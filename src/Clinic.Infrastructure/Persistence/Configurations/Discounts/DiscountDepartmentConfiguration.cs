@@ -1,7 +1,3 @@
-using Clinic.Domain.Discounts;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Discounts;
 
 public sealed class DiscountDepartmentConfiguration

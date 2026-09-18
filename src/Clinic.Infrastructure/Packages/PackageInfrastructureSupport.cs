@@ -1,13 +1,3 @@
-using System.Globalization;
-using Clinic.Application.Abstractions.Packages;
-using Clinic.Application.Common;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Persistence;
-using Clinic.Infrastructure.Discounts;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Packages;
 
 internal static class PackageInfrastructureSupport

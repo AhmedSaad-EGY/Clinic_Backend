@@ -1,7 +1,3 @@
-using Clinic.Domain.Packages;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Packages;
 
 public sealed class PackageSessionConfiguration : IEntityTypeConfiguration<PackageSession>

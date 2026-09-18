@@ -1,8 +1,3 @@
-using Clinic.Domain.Packages;
-using Clinic.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Packages;
 
 public sealed class PatientPackageConfiguration : IEntityTypeConfiguration<PatientPackage>

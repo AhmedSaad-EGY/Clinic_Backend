@@ -1,10 +1,3 @@
-using Clinic.Domain.Approvals;
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Cashier;
-using Clinic.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace Clinic.Infrastructure.Persistence.Configurations.Approvals;
 
 public sealed class ApprovalRequestConfiguration

@@ -1,13 +1,3 @@
-using System.Data;
-using Clinic.Application.Abstractions.Scheduling;
-using Clinic.Application.Common;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Scheduling;
-using Clinic.Infrastructure.Persistence;
-using Clinic.Infrastructure.Appointments;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Clinic.Infrastructure.Scheduling;
 
 public sealed class ScheduleAdministrationService : IScheduleAdministrationService

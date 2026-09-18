@@ -1,12 +1,3 @@
-using System.Globalization;
-using System.Text.Json;
-using Clinic.Application.Abstractions.Cashier;
-using Clinic.Domain.Auditing;
-using Clinic.Domain.Cashier;
-using Clinic.Infrastructure.Persistence;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-
 namespace Clinic.Infrastructure.Cashier;
 
 internal static class CashierInfrastructureSupport
