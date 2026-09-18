@@ -1,5 +1,3 @@
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Packages;
 
 public sealed class PatientPackageService : Entity

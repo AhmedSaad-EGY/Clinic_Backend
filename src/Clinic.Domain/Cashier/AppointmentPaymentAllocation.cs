@@ -1,6 +1,3 @@
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Cashier;
 
 public sealed class AppointmentPaymentAllocation : Entity

@@ -1,5 +1,3 @@
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Approvals;
 
 public sealed class ApprovalRequest : AggregateRoot

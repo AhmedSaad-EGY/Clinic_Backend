@@ -1,5 +1,3 @@
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Patients;
 
 public sealed class PatientNote : AggregateRoot

@@ -1,8 +1,3 @@
-using Clinic.Domain.Common;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Packages;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Domain.Appointments;
 
 public sealed class Appointment : AggregateRoot

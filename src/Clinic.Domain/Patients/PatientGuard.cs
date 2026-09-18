@@ -1,5 +1,3 @@
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Patients;
 
 internal static class PatientGuard

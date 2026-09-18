@@ -1,6 +1,3 @@
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Packages;
 
 public sealed class PackageSessionBooking : Entity

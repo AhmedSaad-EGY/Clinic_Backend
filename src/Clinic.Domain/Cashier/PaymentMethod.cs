@@ -1,5 +1,3 @@
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Cashier;
 
 public sealed class PaymentMethod : Entity

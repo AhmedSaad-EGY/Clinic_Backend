@@ -1,5 +1,3 @@
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Catalog;
 
 public sealed class Device : AggregateRoot

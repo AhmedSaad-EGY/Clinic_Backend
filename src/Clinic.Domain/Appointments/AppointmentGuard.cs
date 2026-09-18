@@ -1,5 +1,3 @@
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Appointments;
 
 internal static class AppointmentGuard

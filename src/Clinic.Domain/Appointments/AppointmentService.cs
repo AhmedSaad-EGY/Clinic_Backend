@@ -1,9 +1,3 @@
-using Clinic.Domain.Common;
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Discounts;
-using Clinic.Domain.Packages;
-using Clinic.Domain.Scheduling;
-
 namespace Clinic.Domain.Appointments;
 
 public sealed class AppointmentService : Entity

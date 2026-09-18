@@ -1,6 +1,3 @@
-using Clinic.Domain.Common;
-using Clinic.Domain.Catalog;
-
 namespace Clinic.Domain.Appointments;
 
 public sealed class AppointmentDevice : Entity

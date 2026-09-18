@@ -1,6 +1,3 @@
-using Clinic.Domain.Common;
-using Clinic.Domain.Packages;
-
 namespace Clinic.Domain.Cashier;
 
 public sealed class PackagePaymentAllocation : Entity

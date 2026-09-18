@@ -1,6 +1,3 @@
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Scheduling;
 
 public sealed class DoctorService : Entity

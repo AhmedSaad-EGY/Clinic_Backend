@@ -1,7 +1,3 @@
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Common;
-using Clinic.Domain.Packages;
-
 namespace Clinic.Domain.Discounts;
 
 public sealed class Discount : AggregateRoot

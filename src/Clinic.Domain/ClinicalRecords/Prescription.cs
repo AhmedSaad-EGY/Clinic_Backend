@@ -1,6 +1,3 @@
-using Clinic.Domain.Appointments;
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.ClinicalRecords;
 
 public sealed class Prescription : AggregateRoot

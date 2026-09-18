@@ -1,6 +1,3 @@
-using System.Globalization;
-using Clinic.Domain.Common;
-
 namespace Clinic.Domain.Patients;
 
 public static class EgyptianMobileNumber
@@ -22,10 +19,12 @@ public static class EgyptianMobileNumber
             digits = $"0{digits[2..]}";
         }
 
-        bool validPrefix = digits.StartsWith("010", StringComparison.Ordinal) ||
+        bool validPrefix =
+            digits.StartsWith("010", StringComparison.Ordinal) ||
             digits.StartsWith("011", StringComparison.Ordinal) ||
             digits.StartsWith("012", StringComparison.Ordinal) ||
             digits.StartsWith("015", StringComparison.Ordinal);
+
         if (digits.Length != 11 || !validPrefix || digits.Any(character => !char.IsAsciiDigit(character)))
         {
             throw new DomainException($"{fieldName} يجب أن يكون رقم موبايل مصريًا صحيحًا.");

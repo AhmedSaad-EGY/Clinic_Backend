@@ -1,7 +1,3 @@
-using Clinic.Domain.Common;
-using Clinic.Domain.Patients;
-using Clinic.Domain.Packages;
-
 namespace Clinic.Domain.Cashier;
 
 public sealed class Payment : AggregateRoot

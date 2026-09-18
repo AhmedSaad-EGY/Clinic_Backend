@@ -1,8 +1,3 @@
-using Clinic.Domain.Catalog;
-using Clinic.Domain.Common;
-using Clinic.Domain.Discounts;
-using Clinic.Domain.Patients;
-
 namespace Clinic.Domain.Packages;
 
 public sealed class PatientPackage : AggregateRoot
